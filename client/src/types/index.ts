@@ -1,8 +1,8 @@
 export interface User {
   name: string;
   email: string;
-  password: string;
-  avatar?: string
+  avatar: string | null;
+  avatarPublicId?: string | null;
 }
 
 export interface AuthResponse {
@@ -20,4 +20,18 @@ export interface RegisterData {
 export interface LoginData {
   email: string;
   password: string;
+}
+
+export interface UploadAvatarData {
+  avatar: File;
+}
+
+export interface UploadAvatarResponse {
+  success: boolean;
+  avatar: string;
+}
+
+export interface DeleteAvatarResponse {
+  success: boolean;
+  message: string;
 }

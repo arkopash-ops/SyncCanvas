@@ -6,14 +6,8 @@ interface JwtPayload {
     id: string;
 }
 
-export interface AuthRequest extends Request {
-    user?: {
-        id: string;
-    };
-}
-
 export const protect = async (
-    req: AuthRequest,
+    req: Request,
     res: Response,
     next: NextFunction
 ) => {

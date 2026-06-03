@@ -22,7 +22,15 @@ const UserSchema = new Schema<IUser>({
         select: false,
     },
 
-    avatar: { type: String },
+    avatar: {
+        type: String,
+        default: null,
+    },
+
+    avatarPublicId: {
+        type: String,
+        default: null,
+    },
 
 }, { timestamps: true });
 

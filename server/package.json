@@ -14,6 +14,7 @@
   "type": "module",
   "dependencies": {
     "bcryptjs": "^3.0.3",
+    "cloudinary": "^2.10.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
@@ -25,6 +26,7 @@
     "nodemailer": "^8.0.10",
     "redis": "^6.0.0",
     "socket.io": "^4.8.3",
+    "streamifier": "^0.1.1",
     "yjs": "^13.6.31"
   },
   "devDependencies": {
@@ -32,7 +34,9 @@
     "@types/cookie-parser": "^1.4.10",
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
+    "@types/multer": "^2.1.0",
     "@types/node": "^25.9.1",
+    "@types/streamifier": "^0.1.2",
     "tsx": "^4.22.4",
     "typescript": "^6.0.3"
   }

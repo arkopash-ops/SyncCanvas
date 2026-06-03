@@ -59,7 +59,7 @@ const Auth = () => {
     try {
       await authService.login({ email, password });
       setStatus({ type: "success", message: "Signed in successfully." });
-      navigate("/dashboard", { replace: true });
+      navigate("/user/work-space", { replace: true });
     } catch (error) {
       setStatus({ type: "error", message: getErrorMessage(error) });
     } finally {
@@ -87,7 +87,7 @@ const Auth = () => {
     try {
       await authService.register({ name, email, password });
       setStatus({ type: "success", message: "Account created successfully." });
-      navigate("/dashboard", { replace: true });
+      navigate("/user/work-space", { replace: true });
     } catch (error) {
       setStatus({ type: "error", message: getErrorMessage(error) });
     } finally {

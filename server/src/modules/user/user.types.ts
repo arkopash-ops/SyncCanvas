@@ -4,7 +4,8 @@ export interface IUser {
     name: string;
     email: string;
     password: string;
-    avatar?: string
+    avatar: string | null;
+    avatarPublicId: string | null;
 }
 
 export type UserDocument = HydratedDocument<IUser>;

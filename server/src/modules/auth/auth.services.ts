@@ -6,7 +6,7 @@ import { generateToken } from "../../config/jwt";
 
 // register a new user
 export const register = async (data: UserRegisterData): Promise<AuthResponse> => {
-    const { name, email, password, avatar } = data;
+    const { name, email, password } = data;
 
     const existing = await UserModel.findOne({ email });
     if (existing) {
@@ -20,8 +20,7 @@ export const register = async (data: UserRegisterData): Promise<AuthResponse> =>
     const user = await UserModel.create({
         name,
         email,
-        password: hashedPassword,
-        ...(avatar ? { avatar } : {})
+        password: hashedPassword
     });
 
     const token = generateToken(user._id.toString());

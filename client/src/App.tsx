@@ -1,10 +1,13 @@
 import type { ReactNode } from "react";
 import { BrowserRouter, Navigate, Routes, Route } from "react-router-dom";
 import Auth from "./pages/Auth";
-import Dashboard from "./pages/dashboard/Dashboard";
+import WorkSpace from "./pages/dashboard/WorkSpace";
 
 import NotFound from "./pages/404/NotFound";
 import { authService } from "./services/auth.services";
+import DashboardLayout from "./components/dashboard/DashboardLayout";
+import Settings from "./pages/dashboard/Settings";
+import Starred from "./pages/dashboard/Starred";
 
 type RouteGuardProps = {
   children: ReactNode;
@@ -12,7 +15,7 @@ type RouteGuardProps = {
 
 const PublicOnlyRoute = ({ children }: RouteGuardProps) => {
   if (authService.isAuthenticated()) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/user/work-space" replace />;
   }
 
   return children;
@@ -38,6 +41,7 @@ function App() {
             </PublicOnlyRoute>
           }
         />
+
         <Route
           path="/login"
           element={
@@ -46,6 +50,7 @@ function App() {
             </PublicOnlyRoute>
           }
         />
+
         <Route
           path="/register"
           element={
@@ -54,14 +59,19 @@ function App() {
             </PublicOnlyRoute>
           }
         />
+
         <Route
-          path="/dashboard"
+          path="/user"
           element={
             <ProtectedRoute>
-              <Dashboard />
+              <DashboardLayout />
             </ProtectedRoute>
           }
-        />
+        >
+          <Route path="work-space" element={<WorkSpace />} />
+          <Route path="starred" element={<Starred />} />
+          <Route path="settings" element={<Settings />} />
+        </Route>
 
         {/* catch all routes "*" */}
         <Route path="*" element={<NotFound />} />
