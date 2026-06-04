@@ -5,6 +5,18 @@ import * as userController from './user.controllers';
 
 const router = Router();
 
+router.put(
+    '/profile',
+    protect,
+    userController._updateProfile
+);
+
+router.put(
+    '/password',
+    protect,
+    userController._updatePassword
+);
+
 router.post(
     '/avatar',
     protect,
@@ -15,7 +27,6 @@ router.post(
 router.delete(
     '/avatar',
     protect,
-    upload.single("avatar"),
     userController._deleteAvatar
 );
 

@@ -5,13 +5,13 @@ import Sidebar from "../Sidebar";
 
 const DashboardLayout: FC = () => {
   return (
-    <div className="min-h-screen bg-white/50 shadow-md">
+    <div className="h-screen flex flex-col overflow-hidden">
       <Navbar />
 
-      <div className="flex min-h-[calc(100vh-64px)]">
+      <div className="flex flex-1 overflow-hidden">
         <Sidebar />
 
-        <main className="flex-1 p-6">
+        <main className="flex-1 overflow-y-auto p-6">
           <Outlet />
         </main>
       </div>

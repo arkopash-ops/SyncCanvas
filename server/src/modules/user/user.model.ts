@@ -22,6 +22,11 @@ const UserSchema = new Schema<IUser>({
         select: false,
     },
 
+    bio: {
+        type: String,
+        default: null,
+    },
+
     avatar: {
         type: String,
         default: null,

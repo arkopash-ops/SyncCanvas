@@ -15,19 +15,19 @@ const Layout = ({ children }: LayoutProps) => {
 
       <img
         src={stickyNote1}
-        alt=""
+        alt="StickyNote1"
         className="fixed bottom-20 right-100 -z-10 w-80 opacity-50 pointer-events-none select-none"
       />
 
       <img
         src={stickyNote2}
-        alt=""
+        alt="StickyNote2"
         className="fixed top-30 left-55 -z-10 w-80 rotate-[-15deg] opacity-50 pointer-events-none select-none"
       />
 
       <img
         src={stickyNote3}
-        alt=""
+        alt="StickyNote3"
         className="fixed top-5 right-20 -z-10 w-80 rotate-15 opacity-50 pointer-events-none select-none"
       />
 
