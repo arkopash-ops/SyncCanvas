@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
 import UserModel from "./user.model";
-import { deleteFromCloudinary, uploadToCloudinary } from "../../utils/cloudinary";
+import { deleteAvatarFromCloudinary, uploadAvatarToCloudinary } from "../../utils/cloudinary";
 import type { UpdatePassword, UpdateProfile } from "./user.types";
 import cloudinary from "../../config/cloudinary";
 
@@ -84,7 +84,7 @@ export const uploadAvatar = async (
         }
     }
 
-    const result: any = await uploadToCloudinary(fileBuffer);
+    const result: any = await uploadAvatarToCloudinary(fileBuffer);
 
     const updatedUser = await UserModel.findByIdAndUpdate(
         userId,
@@ -111,7 +111,7 @@ export const deleteAvatar = async (userId: string) => {
         throw new Error("Avatar not found");
     }
 
-    await deleteFromCloudinary(user.avatarPublicId);
+    await deleteAvatarFromCloudinary(user.avatarPublicId);
 
     user.avatar = null;
     user.avatarPublicId = null;
