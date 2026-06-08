@@ -37,7 +37,12 @@ const Navbar = () => {
         </div>
       </div>
 
-      <div className="flex items-center">
+      <div className="flex items-center gap-3">
+        <p className="text-xl font-semibold">
+          <span className="text-[#3f28d9]">Hello, </span>
+          <span className="text-indigo-500">{user?.name}</span>
+        </p>
+
         {user?.avatar ? (
           <img
             src={user.avatar}

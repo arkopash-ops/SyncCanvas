@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
-import stickyNote1 from "../assets/sticky-note-1.png";
-import stickyNote2 from "../assets/sticky-note-2.png";
-import stickyNote3 from "../assets/sticky-note-3.png";
+import stickyNote1 from "../assets/images/sticky-note-1.png";
+import stickyNote2 from "../assets/images/sticky-note-2.png";
+import stickyNote3 from "../assets/images/sticky-note-3.png";
 import FloatingArrow from "./FloatingArrow";
 
 interface LayoutProps {
