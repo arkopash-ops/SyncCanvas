@@ -5,7 +5,8 @@ export const NotificationTypes = [
     "WORKSPACE_INVITE_ACCEPTED",
     "WORKSPACE_INVITE_REJECTED",
     "MEMBER_REMOVED",
-    "MEMBER_LEFT"
+    "MEMBER_LEFT",
+    "ROLE_UPDATED"
 ] as const;
 export type NotificationType = (typeof NotificationTypes)[number];
 

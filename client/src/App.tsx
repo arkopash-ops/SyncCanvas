@@ -8,6 +8,7 @@ import { authService } from "./services/auth.services";
 import DashboardLayout from "./components/dashboard/DashboardLayout";
 import Settings from "./pages/dashboard/Settings";
 import Starred from "./pages/dashboard/Starred";
+import Board from "./pages/dashboard/Board";
 
 type RouteGuardProps = {
   children: ReactNode;
@@ -69,6 +70,7 @@ function App() {
           }
         >
           <Route path="work-space" element={<WorkSpace />} />
+          <Route path="work-space/:workspaceId" element={<Board />} />
           <Route path="starred" element={<Starred />} />
           <Route path="settings" element={<Settings />} />
         </Route>

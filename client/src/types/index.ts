@@ -104,7 +104,18 @@ export interface WorkspaceResponse {
   data: Workspace;
 }
 
-export interface WorkspacesResponse {
+export interface WorkspaceGroups {
+  owned: Workspace[];
+  joined: Workspace[];
+}
+
+export interface UserWorkspacesResponse {
+  success: boolean;
+  message?: string;
+  data: WorkspaceGroups;
+}
+
+export interface WorkspaceListResponse {
   success: boolean;
   message?: string;
   data: Workspace[];
@@ -119,6 +130,7 @@ export type NotificationType =
   | "WORKSPACE_INVITE"
   | "WORKSPACE_INVITE_ACCEPTED"
   | "WORKSPACE_INVITE_REJECTED"
+  | "ROLE_UPDATED"
   | "MEMBER_REMOVED"
   | "MEMBER_LEFT";
 
@@ -178,4 +190,15 @@ export interface InvitationResponse {
   success: boolean;
   message: string;
   data: WorkspaceInvitation;
+}
+
+export interface WorkspaceMemberDetails {
+  user: User;
+  role: WorkspaceRole;
+  joinedAt?: string;
+}
+
+export interface WorkspaceMembersResponse {
+  success: boolean;
+  data: WorkspaceMemberDetails[];
 }

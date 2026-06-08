@@ -6,7 +6,7 @@ import {
   type ReactNode,
 } from "react";
 import { workspaceService } from "../services/workspace.services";
-import type { Workspace } from "../types";
+import type { Workspace, WorkspaceGroups } from "../types";
 import { WorkspaceContext } from "../context/workspace.context";
 
 const getErrorMessage = (error: unknown) => {
@@ -29,9 +29,17 @@ const getErrorMessage = (error: unknown) => {
 };
 
 export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
-  const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
+  const [workspaceGroups, setWorkspaceGroups] = useState<WorkspaceGroups>({
+    owned: [],
+    joined: [],
+  });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const workspaces = useMemo(
+    () => [...workspaceGroups.owned, ...workspaceGroups.joined],
+    [workspaceGroups],
+  );
 
   const refreshWorkspaces = useCallback(async () => {
     setIsLoading(true);
@@ -39,7 +47,10 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
 
     try {
       const res = await workspaceService.getUserWorkspace();
-      setWorkspaces(res.data);
+      setWorkspaceGroups({
+        owned: res.data.owned || [],
+        joined: res.data.joined || [],
+      });
     } catch (err) {
       setError(getErrorMessage(err));
     } finally {
@@ -48,7 +59,28 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const addWorkspace = useCallback((workspace: Workspace) => {
-    setWorkspaces((prev) => [workspace, ...prev]);
+    setWorkspaceGroups((prev) => ({
+      ...prev,
+      owned: [workspace, ...prev.owned],
+    }));
+  }, []);
+
+  const updateWorkspace = useCallback((workspace: Workspace) => {
+    setWorkspaceGroups((prev) => ({
+      owned: prev.owned.map((item) =>
+        item._id === workspace._id ? workspace : item,
+      ),
+      joined: prev.joined.map((item) =>
+        item._id === workspace._id ? workspace : item,
+      ),
+    }));
+  }, []);
+
+  const removeWorkspace = useCallback((workspaceId: string) => {
+    setWorkspaceGroups((prev) => ({
+      owned: prev.owned.filter((item) => item._id !== workspaceId),
+      joined: prev.joined.filter((item) => item._id !== workspaceId),
+    }));
   }, []);
 
   useEffect(() => {
@@ -62,12 +94,26 @@ export const WorkspaceProvider = ({ children }: { children: ReactNode }) => {
   const value = useMemo(
     () => ({
       workspaces,
+      ownedWorkspaces: workspaceGroups.owned,
+      joinedWorkspaces: workspaceGroups.joined,
       isLoading,
       error,
       addWorkspace,
+      updateWorkspace,
+      removeWorkspace,
       refreshWorkspaces,
     }),
-    [workspaces, isLoading, error, addWorkspace, refreshWorkspaces]
+    [
+      workspaces,
+      workspaceGroups.owned,
+      workspaceGroups.joined,
+      isLoading,
+      error,
+      addWorkspace,
+      updateWorkspace,
+      removeWorkspace,
+      refreshWorkspaces,
+    ]
   );
 
   return (

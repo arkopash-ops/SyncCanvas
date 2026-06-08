@@ -48,11 +48,32 @@ router.patch(
     workspaceController._toggleWorkspaceStatus,
 );
 
+// delete workspace (only by owner)
+router.delete(
+    "/:workspaceId",
+    protect,
+    workspaceController._deleteWorkspace,
+);
+
 // invite user to workspace (only by owner)
 router.post(
     "/:workspaceId/invite",
     protect,
     workspaceController._inviteUserToWorkspace,
+);
+
+// get Workspace members
+router.get(
+    "/:workspaceId/members",
+    protect,
+    workspaceController._getWorkspaceMember,
+);
+
+// change role of members (only by owner)
+router.patch(
+    "/:workspaceId/member/:memberId/role",
+    protect,
+    workspaceController._updateMemberRole,
 );
 
 // remove user from workspace (only by owner)

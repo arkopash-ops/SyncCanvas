@@ -151,6 +151,30 @@ export const _toggleWorkspaceStatus = async (req: Request, res: Response, next: 
 };
 
 
+// delete workspace (only by owner)
+export const _deleteWorkspace = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const workspaceId = req.params.workspaceId;
+        if (!workspaceId || Array.isArray(workspaceId)) {
+            return res.status(400).json({ message: "Invalid workspace Id" });
+        }
+
+        if (!req.user) {
+            return res.status(401).json({ message: "Unauthorized" });
+        }
+
+        await workspaceService.deleteWorkspace(workspaceId, req.user.id);
+
+        return res.status(200).json({
+            success: true,
+            message: "Workspace deleted successfully",
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+
 // invite user to workspace (only by owner)
 export const _inviteUserToWorkspace = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -181,6 +205,92 @@ export const _inviteUserToWorkspace = async (req: Request, res: Response, next: 
         });
     } catch (error) {
         next(error)
+    }
+};
+
+
+// get Workspace members
+export const _getWorkspaceMember = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const workspaceId = req.params.workspaceId;
+        if (!workspaceId || Array.isArray(workspaceId)) {
+            return res.status(400).json({ message: "Invalid workspace Id" });
+        }
+
+        if (!req.user) {
+            return res.status(401).json({ message: "Unauthorized" });
+        }
+
+        const workspace = await workspaceService.getWorkspaceMember(
+            workspaceId,
+            req.user.id,
+        );
+
+        const owner = workspace.owner as { _id?: unknown; toString: () => string };
+        const ownerId = owner._id ? owner._id.toString() : owner.toString();
+
+        const member = [
+            {
+                user: workspace.owner,
+                role: "owner"
+            },
+
+            ...workspace.members.map(
+                (m) => ({
+                    user: m.userId,
+                    role: m.role,
+                    joinedAt: m.joinedAt,
+                })
+            ).filter((m) => {
+                const user = m.user as { _id?: unknown };
+                return user._id?.toString() !== ownerId;
+            }),
+        ];
+
+        return res.status(200).json({
+            success: true,
+            data: member,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+
+// change role of members (only by owner)
+export const _updateMemberRole = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const workspaceId = req.params.workspaceId;
+        if (!workspaceId || Array.isArray(workspaceId)) {
+            return res.status(400).json({ message: "Invalid workspace Id" });
+        }
+
+        if (!req.user) {
+            return res.status(401).json({ message: "Unauthorized" });
+        }
+
+        const memberId = req.params.memberId;
+        if (!memberId || Array.isArray(memberId)) {
+            return res.status(400).json({ message: "Invalid member Id" });
+        }
+
+        const { role } = req.body;
+
+        const member = await workspaceService.updateMemberRole(
+            workspaceId,
+            req.user.id,
+            memberId,
+            role,
+        );
+
+        return res.status(200).json({
+            success: true,
+            message: "Member role updated successfully.",
+            data: member,
+        });
+
+    } catch (error) {
+        next(error);
     }
 };
 

@@ -45,7 +45,7 @@ export const getUserWorkspace = async (userId: string) => {
 
     const grouped: WorkspaceGrouped = {
         owned: [],
-        invited: [],
+        joined: [],
     };
 
     for (const ws of workspaces) {
@@ -58,11 +58,11 @@ export const getUserWorkspace = async (userId: string) => {
         if (isOwner) {
             grouped.owned.push(ws);
         } else {
-            grouped.invited.push(ws);
+            grouped.joined.push(ws);
         }
     }
 
-    return workspaces;
+    return grouped;
 };
 
 
@@ -97,7 +97,7 @@ export const getWorkspaceById = async (
 ) => {
     const workspace = await WorkspaceModel.findById(workspaceId)
         .populate("owner", "name email avatar")
-        .populate("members.userId", "name email, avatar");
+        .populate("members.userId", "name email avatar");
 
     if (!workspace) {
         const err = new Error("Workspace note found");
@@ -165,6 +165,32 @@ export const toggleWorkspaceStatus = async (
     workspace.isActive = !workspace.isActive;
     await workspace.save();
     return workspace
+};
+
+
+// delete workspace (only by owner)
+export const deleteWorkspace = async (
+    workspaceId: string,
+    ownerId: string
+) => {
+    const workspace = await WorkspaceModel.findById(workspaceId);
+    if (!workspace) {
+        const err = new Error("Workspace not found");
+        (err as any).statusCode = 404;
+        throw err;
+    }
+
+    if (workspace.owner.toString() !== ownerId) {
+        const err = new Error("You don't have permission to delete Workspace.");
+        (err as any).statusCode = 400;
+        throw err;
+    }
+
+    await WorkspaceModel.findByIdAndDelete(workspaceId);
+    await WorkspaceInvitationModel.deleteMany({ workspaceId });
+    await NotificationModel.deleteMany({ "metadata.workspaceId": workspaceId });
+
+    return true;
 };
 
 
@@ -243,6 +269,93 @@ export const inviteUserToWorkspace = async ({
 };
 
 
+// get Workspace members
+export const getWorkspaceMember = async (
+    workspaceId: string,
+    userId: string
+) => {
+    const workspace = await WorkspaceModel.findById(workspaceId)
+        .populate("owner", "name email avatar")
+        .populate("members.userId", "name email avatar");
+
+    if (!workspace) {
+        const err = new Error("Workspace not found.");
+        (err as any).statusCode = 404;
+        throw err;
+    }
+
+    const isMember = workspace.owner._id.toString() === userId ||
+        workspace.members.some((m) => m.userId._id.toString() === userId);
+
+    if (!isMember) {
+        const err = new Error("You don't have the access to this Workspace.");
+        (err as any).statusCode = 404;
+        throw err;
+    }
+
+    return workspace;
+};
+
+
+// change role of members (only by owner)
+export const updateMemberRole = async (
+    workspaceId: string,
+    ownerId: string,
+    memberId: string,
+    role: "editor" | "viewer",
+) => {
+    const workspace = await WorkspaceModel.findById(workspaceId);
+    if (!workspace) {
+        const err = new Error("Workspace not found.");
+        (err as any).statusCode = 404;
+        throw err;
+    }
+
+    if (workspace.owner.toString() !== ownerId) {
+        const err = new Error("Only Workspace Owner can change the roles.");
+        (err as any).statusCode = 400;
+        throw err;
+    }
+
+    if (workspace.owner.toString() === memberId) {
+        const err = new Error("Owner role cannot be changed.");
+        (err as any).statusCode = 400;
+        throw err;
+    }
+
+    const member = workspace.members.find((m) => m.userId.toString() === memberId);
+    if (!member) {
+        const err = new Error("Member not found.");
+        (err as any).statusCode = 404;
+        throw err;
+    }
+
+    if (role !== "editor" && role !== "viewer") {
+        const err = new Error("Role must be editor or viewer.");
+        (err as any).statusCode = 400;
+        throw err;
+    }
+
+    member.role = role;
+
+    await workspace.save();
+
+    await NotificationModel.create({
+        receiver: memberId,
+        sender: ownerId,
+        type: "ROLE_UPDATED",
+        title: "Workspace Role Updated",
+        message: `Your role has been changed to ${role} in ${workspace.name}`,
+        metadata: {
+            workspaceId,
+            role,
+        },
+    });
+
+    return member;
+};
+
+
 // remove user from workspace (only by owner)
 export const removeMember = async (
     workspaceId: string,
@@ -279,7 +392,7 @@ export const removeMember = async (
     }
 
     workspace.members = workspace.members.filter(
-        (m) => m.userId.toString() === memberId
+        (m) => m.userId.toString() !== memberId
     );
 
     await workspace.save();

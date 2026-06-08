@@ -4,8 +4,10 @@ import type {
     InvitationResponse,
     RenameWorkspaceData,
     WorkspaceActionResponse,
+    WorkspaceListResponse,
     WorkspaceResponse,
-    WorkspacesResponse,
+    WorkspaceMembersResponse,
+    UserWorkspacesResponse,
 } from "../types";
 import api from "./api";
 
@@ -29,13 +31,13 @@ export const workspaceService = {
         return res.data;
     },
 
-    getUserWorkspace: async (): Promise<WorkspacesResponse> => {
-        const res = await api.get<WorkspacesResponse>("/workspace/my");
+    getUserWorkspace: async (): Promise<UserWorkspacesResponse> => {
+        const res = await api.get<UserWorkspacesResponse>("/workspace/my");
         return res.data;
     },
 
-    searchWorkspace: async (search: string): Promise<WorkspacesResponse> => {
-        const res = await api.get<WorkspacesResponse>("/workspace/search", {
+    searchWorkspace: async (search: string): Promise<WorkspaceListResponse> => {
+        const res = await api.get<WorkspaceListResponse>("/workspace/search", {
             params: { search },
         });
         return res.data;
@@ -66,6 +68,15 @@ export const workspaceService = {
         return res.data;
     },
 
+    deleteWorkspace: async (
+        workspaceId: string
+    ): Promise<WorkspaceActionResponse> => {
+        const res = await api.delete<WorkspaceActionResponse>(
+            `/workspace/${workspaceId}`
+        );
+        return res.data;
+    },
+
     inviteUserToWorkspace: async (
         workspaceId: string,
         data: InviteUserToWorkspaceData
@@ -73,6 +84,27 @@ export const workspaceService = {
         const res = await api.post<InvitationResponse>(
             `/workspace/${workspaceId}/invite`,
             data
+        );
+        return res.data;
+    },
+
+    updateMemberRole: async (
+        workspaceId: string,
+        memberId: string,
+        role: "editor" | "viewer"
+    ): Promise<WorkspaceResponse> => {
+        const res = await api.patch<WorkspaceResponse>(
+            `/workspace/${workspaceId}/member/${memberId}/role`,
+            { role }
+        );
+        return res.data;
+    },
+
+    getWorkspaceMember: async (
+        workspaceId: string
+    ): Promise<WorkspaceMembersResponse> => {
+        const res = await api.get<WorkspaceMembersResponse>(
+            `/workspace/${workspaceId}/members`
         );
         return res.data;
     },

@@ -10,7 +10,14 @@ import { useWorkspaceContext } from "../../hooks/workspace.hook";
 const WorkSpace = () => {
   const [user] = useState<User | null>(() => userServices.getStoredUser());
   const [open, setOpen] = useState(false);
-  const { workspaces, isLoading, error, addWorkspace } = useWorkspaceContext();
+  const {
+    workspaces,
+    ownedWorkspaces,
+    joinedWorkspaces,
+    isLoading,
+    error,
+    addWorkspace,
+  } = useWorkspaceContext();
 
   return (
     <>
@@ -46,10 +53,34 @@ const WorkSpace = () => {
           )}
 
           {!isLoading && !error && workspaces.length > 0 && (
-            <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {workspaces.map((workspace: Workspace) => (
-                <WorkspaceCard key={workspace._id} workspace={workspace} />
-              ))}
+            <div className="mt-10 space-y-12">
+              {ownedWorkspaces.length > 0 && (
+                <div>
+                  <h2 className="text-2xl font-bold text-[#24184f] mb-6 flex items-center gap-2">
+                    <span className="w-2.5 h-6 bg-[#24184f] rounded-full inline-block"></span>
+                    Owned Workspaces
+                  </h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {ownedWorkspaces.map((workspace: Workspace) => (
+                      <WorkspaceCard key={workspace._id} workspace={workspace} />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {joinedWorkspaces.length > 0 && (
+                <div>
+                  <h2 className="text-2xl font-bold text-[#24184f] mb-6 flex items-center gap-2">
+                    <span className="w-2.5 h-6 bg-[#635bff] rounded-full inline-block"></span>
+                    Joined Workspaces
+                  </h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {joinedWorkspaces.map((workspace: Workspace) => (
+                      <WorkspaceCard key={workspace._id} workspace={workspace} />
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>

@@ -29,5 +29,5 @@ export interface CreateWorkspace {
 
 export type WorkspaceGrouped = {
     owned: WorkspaceDocument[];
-    invited: WorkspaceDocument[];
+    joined: WorkspaceDocument[];
 };

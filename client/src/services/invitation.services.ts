@@ -9,18 +9,14 @@ export const invitationService = {
         return res.data;
     },
 
-    acceptInvitation: async (
-        invitationId: string
-    ): Promise<InvitationResponse> => {
+    acceptInvitation: async (invitationId: string): Promise<InvitationResponse> => {
         const res = await api.post<InvitationResponse>(
             `/invitation/${invitationId}/accept`
         );
         return res.data;
     },
 
-    rejectInvitation: async (
-        invitationId: string
-    ): Promise<InvitationResponse> => {
+    rejectInvitation: async (invitationId: string): Promise<InvitationResponse> => {
         const res = await api.post<InvitationResponse>(
             `/invitation/${invitationId}/reject`
         );
