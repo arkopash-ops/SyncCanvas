@@ -1,8 +1,8 @@
+import { getIO } from '../../socket';
 import NotificationModel from '../notification/notification.model';
 import UserModel from '../user/user.model';
 import WorkspaceModel from '../workspace/workspace.model';
 import WorkspaceInvitationModel from './invitation.model';
-import { Invitation } from './invitation.types';
 
 
 // get pending invitation
@@ -67,6 +67,14 @@ export const acceptInvitation = async (
     invitation.status = "ACCEPTED";
     await invitation.save();
 
+    const io = getIO();
+    if (io) {
+        io.to(`user_${userId}`).emit("workspace_added", {
+            workspaceId: workspace._id,
+            message: "You have joined new workshop."
+        });
+    }
+
     const user = await UserModel.findById(userId)
         .select("name");
     if (!user) {
@@ -75,7 +83,7 @@ export const acceptInvitation = async (
         throw err;
     }
 
-    await NotificationModel.create({
+    const notification = await NotificationModel.create({
         receiver: invitation.invitedBy,
         sender: invitation.invitedUser,
         type: "WORKSPACE_INVITE_ACCEPTED",
@@ -87,7 +95,16 @@ export const acceptInvitation = async (
         }
     });
 
-    return Invitation;
+    if (io) {
+        io.to(`user_${invitation.invitedBy}`).emit("notification_received", {
+            type: notification.type,
+            title: notification.title,
+            message: notification.message,
+            metadata: notification.metadata,
+        });
+    }
+
+    return invitation;
 };
 
 
@@ -134,7 +151,7 @@ export const rejectInvitation = async (
         throw err;
     }
 
-    await NotificationModel.create({
+    const notification = await NotificationModel.create({
         receiver: invitation.invitedBy,
         sender: invitation.invitedUser,
         type: "WORKSPACE_INVITE_REJECTED",
@@ -145,6 +162,16 @@ export const rejectInvitation = async (
             invitationId: invitation._id,
         },
     });
+
+    const io = getIO();
+    if (io) {
+        io.to(`user_${invitation.invitedBy}`).emit("notification_received", {
+            type: notification.type,
+            title: notification.title,
+            message: notification.message,
+            metadata: notification.metadata,
+        });
+    }
 
     return invitation;
 }

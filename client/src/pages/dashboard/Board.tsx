@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import type { User, Workspace } from "../../types";
 import { userServices } from "../../services/user.services";
 import { workspaceService } from "../../services/workspace.services";
@@ -9,6 +9,7 @@ import BoardTable from "../../components/dashboard/board/BoardTable";
 import Breadcrumb from "../../components/Breadcrumb";
 import { FaUsers } from "react-icons/fa";
 import UserManagement from "../../components/dashboard/board/UserManagement";
+import { socket } from "../../lib/socket";
 
 const getErrorMessage = (error: unknown) => {
   if (
@@ -30,6 +31,7 @@ const getErrorMessage = (error: unknown) => {
 };
 
 const Board = () => {
+  const navigate = useNavigate();
   const { workspaceId } = useParams();
   const [user] = useState<User | null>(() => userServices.getStoredUser());
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
@@ -52,6 +54,21 @@ const Board = () => {
     if (!storageKey) return;
     localStorage.setItem(storageKey, v);
   };
+
+  useEffect(() => {
+    const handleRemoved = (data: { workspaceId: string; message: string }) => {
+      if (data.workspaceId === workspaceId) {
+        alert("You have been removed by this workspace owner");
+        navigate("/user/work-space");
+      }
+    };
+
+    socket.on("member_remove_from_workspace", handleRemoved);
+
+    return () => {
+      socket.off("member_remove_from_workspace", handleRemoved);
+    };
+  }, [workspaceId, navigate]);
 
   useEffect(() => {
     let isMounted = true;
@@ -114,7 +131,9 @@ const Board = () => {
           onClick={() => setShowUserManagement(true)}
           className="flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 text-white font-medium hover:bg-indigo-700 transition"
         >
-          <span className="material-symbols-outlined text-lg"><FaUsers size={24} /></span>
+          <span className="material-symbols-outlined text-lg">
+            <FaUsers size={24} />
+          </span>
           Manage Members
         </button>
       </div>

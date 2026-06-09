@@ -1,14 +1,29 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { FaSearch } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { userServices } from "../services/user.services";
 import { workspaceService } from "../services/workspace.services";
 import { notificationService } from "../services/notification.services";
 import MyNotifications from "./dashboard/notifications/MyNotifications";
-import type { User, Workspace } from "../types";
+import type { NotificationType, User, Workspace } from "../types";
+import { socket } from "../lib/socket";
+import { useWorkspaceContext } from "../hooks/workspace.hook";
+
+type NotificationSocketPayload = {
+  type?: NotificationType;
+  title?: string;
+  message: string;
+  metadata?: Record<string, unknown>;
+};
+
+const getUnreadNotificationCount = async () => {
+  const res = await notificationService.getUnreadNotificationCount();
+  return res.count;
+};
 
 const Navbar = () => {
   const navigate = useNavigate();
+  const { refreshWorkspaces } = useWorkspaceContext();
   const [user, setUser] = useState<User | null>(() =>
     userServices.getStoredUser(),
   );
@@ -23,6 +38,37 @@ const Navbar = () => {
   // Notification States
   const [showNotifications, setShowNotifications] = useState(false);
   const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
+
+  // for notification with Socket.io
+  useEffect(() => {
+    const handleNotification = (data: NotificationSocketPayload) => {
+      setUnreadNotificationsCount((count) => count + 1);
+
+      void getUnreadNotificationCount()
+        .then(setUnreadNotificationsCount)
+        .catch((e: unknown) => {
+          console.error("Failed to fetch notification count", e);
+        });
+
+      console.log("New notification: ", data.message);
+    };
+    const handleWorkspaceAdded = () => {
+      void refreshWorkspaces();
+    };
+    const handleWorkspaceRemoved = () => {
+      void refreshWorkspaces();
+    };
+
+    socket.on("notification_received", handleNotification);
+    socket.on("workspace_added", handleWorkspaceAdded);
+    socket.on("member_remove_from_workspace", handleWorkspaceRemoved);
+
+    return () => {
+      socket.off("notification_received", handleNotification);
+      socket.off("workspace_added", handleWorkspaceAdded);
+      socket.off("member_remove_from_workspace", handleWorkspaceRemoved);
+    };
+  }, [refreshWorkspaces]);
 
   // Synchronize stored user
   useEffect(() => {
@@ -58,25 +104,33 @@ const Navbar = () => {
     return () => clearTimeout(delayDebounceFn);
   }, [searchQuery]);
 
-  // Fetch Unread Notification Count
-  const fetchUnreadCount = useCallback(async () => {
-    try {
-      const res = await notificationService.getUnreadNotificationCount();
-      setUnreadNotificationsCount(res.count);
-    } catch (e) {
-      console.error("Failed to fetch notification count", e);
-    }
-  }, []);
-
   useEffect(() => {
-    const runFetch = () => {
-      void fetchUnreadCount();
+    let isActive = true;
+
+    const fetchUnreadCount = async () => {
+      try {
+        const count = await getUnreadNotificationCount();
+        if (isActive) {
+          setUnreadNotificationsCount(count);
+        }
+      } catch (e) {
+        console.error("Failed to fetch notification count", e);
+      }
     };
 
-    queueMicrotask(runFetch);
-    const interval = setInterval(fetchUnreadCount, 20000); // Poll every 20s
-    return () => clearInterval(interval);
-  }, [fetchUnreadCount]);
+    queueMicrotask(() => {
+      void fetchUnreadCount();
+    });
+
+    const interval = setInterval(() => {
+      void fetchUnreadCount();
+    }, 20000); // Poll every 20s
+
+    return () => {
+      isActive = false;
+      clearInterval(interval);
+    };
+  }, []);
 
   // Close dropdowns on click outside
   useEffect(() => {
@@ -147,8 +201,12 @@ const Navbar = () => {
                         className="w-full text-left px-4 py-2 hover:bg-indigo-50 flex items-center justify-between transition"
                       >
                         <div>
-                          <p className="font-semibold text-gray-900 text-sm">{ws.name}</p>
-                          <p className="text-[10px] text-gray-500">Owner: {ownerName}</p>
+                          <p className="font-semibold text-gray-900 text-sm">
+                            {ws.name}
+                          </p>
+                          <p className="text-[10px] text-gray-500">
+                            Owner: {ownerName}
+                          </p>
                         </div>
                         {ws.image && (
                           <img
@@ -191,7 +249,9 @@ const Navbar = () => {
             )}
             {unreadNotificationsCount > 0 && (
               <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center border border-white">
-                {unreadNotificationsCount > 99 ? "99+" : unreadNotificationsCount}
+                {unreadNotificationsCount > 99
+                  ? "99+"
+                  : unreadNotificationsCount}
               </span>
             )}
           </button>

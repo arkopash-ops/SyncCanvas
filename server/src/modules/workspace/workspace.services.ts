@@ -6,6 +6,7 @@ import WorkspaceInvitationModel from "../invitation/invitation.model";
 import NotificationModel from "../notification/notification.model";
 import UserModel from "../user/user.model";
 import WorkspaceModel from "./workspace.model";
+import { getIO } from "../../socket";
 
 
 // create workspace
@@ -235,15 +236,30 @@ export const inviteUserToWorkspace = async ({
         throw err;
     }
 
-    const pendingInvite = await WorkspaceInvitationModel.findOne({
+    const existingInvitation = await WorkspaceInvitationModel.findOne({
         workspaceId,
         invitedUser: invitedUser._id,
-        status: "PENDING",
     });
-    if (pendingInvite) {
-        const err = new Error("Invitation already sent.");
-        (err as any).statusCode = 400;
-        throw err;
+
+    if (existingInvitation) {
+        if (existingInvitation.status === "PENDING") {
+            const err = new Error("Invitation already sent.");
+            (err as any).statusCode = 400;
+            throw err;
+        }
+
+        if (existingInvitation.status === "REJECTED") {
+            await WorkspaceInvitationModel.deleteOne({
+                workspaceId,
+                invitedUser: invitedUser._id,
+            });
+        } else {
+            const err = new Error(
+                `Invitation already exists with status ${existingInvitation.status}`
+            );
+            (err as any).statusCode = 400;
+            throw err;
+        }
     }
 
     const invitation = await WorkspaceInvitationModel.create({
@@ -264,6 +280,20 @@ export const inviteUserToWorkspace = async ({
             invitation: invitation._id,
         },
     });
+
+    const io = getIO();
+    if (io) {
+        // Notify the invited user's socket room
+        io.to(`user_${invitedUser._id}`).emit("notification_received", {
+            type: "WORKSPACE_INVITE",
+            title: "Workspace Invitation",
+            message: `You have been invited to join ${workspace.name}`,
+            metadata: {
+                workspaceId: workspace._id,
+                invitation: invitation._id,
+            },
+        });
+    }
 
     return invitation;
 };
@@ -397,7 +427,12 @@ export const removeMember = async (
 
     await workspace.save();
 
-    await NotificationModel.create({
+    await WorkspaceInvitationModel.deleteOne({
+        workspaceId,
+        invitedUser: memberId,
+    });
+
+    const notification = await NotificationModel.create({
         receiver: memberId,
         sender: ownerId,
         type: "MEMBER_REMOVED",
@@ -405,6 +440,20 @@ export const removeMember = async (
         message: `you were removed from ${workspace.name}`,
         metadata: { workspaceId },
     });
+
+    const io = getIO();
+    if (io) {
+        io.to(`user_${memberId}`).emit("notification_received", {
+            type: notification.type,
+            title: notification.title,
+            message: notification.message,
+            metadata: notification.metadata,
+        });
+        io.to(`user_${memberId}`).emit("member_remove_from_workspace", {
+            workspaceId: workspaceId,
+            message: `You were removed from workspace ${workspace.name}`
+        });
+    }
 
     return true;
 };
@@ -449,6 +498,11 @@ export const leaveWorkspace = async (
     );
 
     await workspace.save();
+
+    await WorkspaceInvitationModel.deleteOne({
+        workspaceId,
+        invitedUser: userId,
+    });
 
     const user = await UserModel.findById(userId)
         .select("name");
