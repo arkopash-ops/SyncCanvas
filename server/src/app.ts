@@ -7,6 +7,7 @@ import userRoutes from './modules/user/user.routes';
 import workspaceRoutes from './modules/workspace/workspace.routes';
 import invitationRoutes from './modules/invitation/invitation.routes';
 import notificationRoutes from './modules/notification/notification.routes';
+import boardRoutes from './modules/board/board.router';
 
 import { ErrorHandler } from './middleware/error.middleware';
 
@@ -21,6 +22,7 @@ app.use("/api/user", userRoutes);
 app.use("/api/workspace", workspaceRoutes);
 app.use("/api/invitation", invitationRoutes);
 app.use("/api/notification", notificationRoutes);
+app.use("/api/board", boardRoutes);
 
 app.use(ErrorHandler);
 

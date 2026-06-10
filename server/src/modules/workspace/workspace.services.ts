@@ -7,6 +7,7 @@ import NotificationModel from "../notification/notification.model";
 import UserModel from "../user/user.model";
 import WorkspaceModel from "./workspace.model";
 import { getIO } from "../../socket";
+import BoardModel from "../board/board.model";
 
 
 // create workspace
@@ -64,6 +65,33 @@ export const getUserWorkspace = async (userId: string) => {
     }
 
     return grouped;
+};
+
+
+// get board by workspace
+export const getWorkspaceBoard = async (
+    workspaceId: string,
+    userId: string
+) => {
+    const workspace = await WorkspaceModel.findById(workspaceId);
+    if (!workspace || !workspace.isActive) {
+        const err = new Error("Workspace not found");
+        (err as any).statusCode = 404;
+        throw err;
+    }
+
+    const member = workspace.members.find((m) => m.userId.toString() === userId);
+    if (!member) {
+        const err = new Error("You are not the member of this Workspace.");
+        (err as any).statusCode = 403;
+        throw err;
+    }
+
+    const board = await BoardModel.find({ workspaceId, isActive: true })
+        .select("_id title thumbnail isStarred lastOpened createdAt updatedAt ownerId")
+        .sort({ updatedAt: -1 });
+
+    return board;
 };
 
 

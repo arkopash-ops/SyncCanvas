@@ -47,6 +47,35 @@ export const _getUserWorkspace = async (req: Request, res: Response, next: NextF
 };
 
 
+// get board by workspace
+export const _getWorkspaceBoard = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const workspaceId = req.params.workspaceId;
+        if (!workspaceId || Array.isArray(workspaceId)) {
+            return res.status(400).json({ message: "Invalid workspace Id" });
+        }
+
+        if (!req.user) {
+            return res.status(401).json({ message: "Unauthorized" });
+        }
+        const userId = req.user.id
+
+        const boards = await workspaceService.getWorkspaceBoard(
+            workspaceId,
+            userId,
+        );
+
+        res.status(200).json({
+            success: true,
+            count: boards.length,
+            boards,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+
 // search workspace (by workspace name, by owner name)
 export const _searchWorkspace = async (req: Request, res: Response, next: NextFunction) => {
     try {

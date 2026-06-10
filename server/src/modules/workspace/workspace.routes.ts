@@ -20,6 +20,13 @@ router.get(
     workspaceController._getUserWorkspace,
 );
 
+// get board by workspace
+router.get(
+    "/:workspaceId/boards",
+    protect,
+    workspaceController._getWorkspaceBoard
+);
+
 // search workspace (by workspace name, by owner name)
 router.get(
     "/search",
