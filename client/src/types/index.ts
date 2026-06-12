@@ -202,3 +202,59 @@ export interface WorkspaceMembersResponse {
   success: boolean;
   data: WorkspaceMemberDetails[];
 }
+
+export interface BoardSnapshot {
+  yjsState?: unknown;
+  updatedAt?: string;
+}
+
+export interface Board {
+  _id: string;
+  workspaceId: string | Pick<Workspace, "_id" | "name" | "image">;
+  ownerId: string | User;
+  title: string;
+  thumbnail: string | null;
+  starredBy?: string[];
+  lastEditedBy?: string | User | null;
+  isActive?: boolean;
+  snapshot?: BoardSnapshot;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateBoardData {
+  workspaceId: string;
+  title: string;
+}
+
+export interface RenameBoardData {
+  title: string;
+}
+
+export interface BoardResponse {
+  success: boolean;
+  message?: string;
+  board: Board;
+}
+
+export interface BoardListResponse {
+  success: boolean;
+  count: number;
+  board: Board[];
+}
+
+export interface WorkspaceBoardsResponse {
+  success: boolean;
+  count: number;
+  boards: Board[];
+}
+
+export interface UpdateThumbnailData {
+  thumbnail: File;
+}
+
+export interface UpdateThumbnailResponse {
+  success: boolean;
+  thumbnail: string;
+  thumbnailPublicId?: string | null;
+}

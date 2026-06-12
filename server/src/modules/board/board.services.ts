@@ -2,6 +2,8 @@ import mongoose from "mongoose";
 import WorkspaceModel from "../workspace/workspace.model";
 import BoardModel from "./board.model";
 import type { CreateBoardInput, GetBoardByIdInput, RenameBoardInput } from "./types/board.types";
+import cloudinary from "../../config/cloudinary";
+import { uploadBoardThumbnailToCloudinary } from "../../utils/cloudinary";
 
 
 // create board (only owner)
@@ -41,7 +43,7 @@ export const createBoard = async ({
 
 
 //show all starred board (user specific)
-export const StarredBoard = async (userId: string) => {
+export const starredBoard = async (userId: string) => {
     const boards = await BoardModel.find({
         starredBy: userId,
         isActive: true,
@@ -115,6 +117,41 @@ export const renameBoard = async ({
 
     await board.save();
     return board;
+};
+
+
+// update thumbnail
+export const updateThumbnail = async (
+    boardId: string,
+    fileBuffer: Buffer
+) => {
+    const board = await BoardModel.findById(boardId);
+    if (!board) {
+        const err = new Error("Board not found.");
+        (err as any).statusCode = 404;
+        throw err;
+    }
+
+    if (board.thumbnailPublicId) {
+        try {
+            await cloudinary.uploader.destroy(board.thumbnailPublicId);
+        } catch (error) {
+            console.error("Failed to delete Thumbnail: ", error);
+        }
+    }
+
+    const result: any = await uploadBoardThumbnailToCloudinary(fileBuffer);
+
+    const updateBoardThumbnail = await BoardModel.findByIdAndUpdate(
+        boardId,
+        {
+            thumbnail: result.secure_url,
+            thumbnailPublicId: result.public_id,
+        },
+        { returnDocument: "after" }
+    );
+
+    return updateBoardThumbnail;
 };
 
 

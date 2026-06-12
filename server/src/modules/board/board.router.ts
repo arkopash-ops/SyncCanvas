@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { protect } from "../../middleware/auth.middleware";
 import * as boardController from "./board.controller"
+import { upload } from "../../middleware/upload.middleware";
 
 const router = Router();
 
@@ -30,6 +31,14 @@ router.patch(
     "/:boardId/rename",
     protect,
     boardController._renameBoard,
+);
+
+// update thumbnail
+router.patch(
+    "/:boardId/thumbnail",
+    protect,
+    upload.single("thumbnail"),
+    boardController._updateThumbnail,
 );
 
 // delete board (only by owner)

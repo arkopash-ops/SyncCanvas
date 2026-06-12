@@ -87,8 +87,8 @@ export const getWorkspaceBoard = async (
         throw err;
     }
 
-    const board = await BoardModel.find({ workspaceId, isActive: true })
-        .select("_id title thumbnail isStarred lastOpened createdAt updatedAt ownerId")
+    const board = await BoardModel.find({ workspaceId })
+        .select("_id title thumbnail isActive isStarred lastEditedBy createdAt updatedAt ownerId")
         .sort({ updatedAt: -1 });
 
     return board;

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import type { User, Workspace } from "../../types";
+import type { Board as WorkspaceBoard, User, Workspace } from "../../types";
 import { userServices } from "../../services/user.services";
 import { workspaceService } from "../../services/workspace.services";
 import ViewToggle from "../../components/dashboard/board/ViewToggle";
@@ -11,7 +11,7 @@ import { FaUsers } from "react-icons/fa";
 import UserManagement from "../../components/dashboard/board/UserManagement";
 import { socket } from "../../lib/socket";
 
-const getErrorMessage = (error: unknown) => {
+const getErrorMessage = (error: unknown, fallback = "Unable to load workspace.") => {
   if (
     typeof error === "object" &&
     error !== null &&
@@ -27,7 +27,7 @@ const getErrorMessage = (error: unknown) => {
     return error.response.data.message;
   }
 
-  return "Unable to load workspace.";
+  return fallback;
 };
 
 const Board = () => {
@@ -35,8 +35,11 @@ const Board = () => {
   const { workspaceId } = useParams();
   const [user] = useState<User | null>(() => userServices.getStoredUser());
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
+  const [boards, setBoards] = useState<WorkspaceBoard[]>([]);
   const [isLoadingWorkspace, setIsLoadingWorkspace] = useState(true);
+  const [isLoadingBoards, setIsLoadingBoards] = useState(true);
   const [workspaceError, setWorkspaceError] = useState("");
+  const [boardError, setBoardError] = useState("");
   const [showUserManagement, setShowUserManagement] = useState(false);
 
   const storageKey = user?.email ? `workspace-view-${user.email}` : null;
@@ -107,7 +110,45 @@ const Board = () => {
     };
   }, [workspaceId]);
 
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadBoards = async () => {
+      if (!workspaceId) {
+        setBoardError("Workspace id is missing.");
+        setIsLoadingBoards(false);
+        return;
+      }
+
+      setIsLoadingBoards(true);
+      setBoardError("");
+
+      try {
+        const res = await workspaceService.getWorkspaceBoard(workspaceId);
+
+        if (isMounted) {
+          setBoards(res.boards || []);
+        }
+      } catch (error) {
+        if (isMounted) {
+          setBoardError(getErrorMessage(error, "Unable to load boards."));
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoadingBoards(false);
+        }
+      }
+    };
+
+    loadBoards();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [workspaceId]);
+
   const workspaceName = workspace?.name ?? "Workspace";
+  const lastModifiedBoards = boards.slice(0, 3);
 
   return (
     <div className="px-6 py-4 space-y-8 bg-white/50 min-h-screen">
@@ -134,7 +175,7 @@ const Board = () => {
           <span className="material-symbols-outlined text-lg">
             <FaUsers size={24} />
           </span>
-          Manage Members
+          Members
         </button>
       </div>
 
@@ -149,15 +190,44 @@ const Board = () => {
       <p className="text-3xl font-bold text-indigo-600 mb-4">
         Last Modified Boards
       </p>
-      {view === "grid" ? <BoardGrid /> : <BoardTable />}
+      {view === "grid" ? (
+        <BoardGrid
+          boards={lastModifiedBoards}
+          isLoading={isLoadingBoards}
+          error={boardError}
+          emptyMessage="No recently modified boards found."
+        />
+      ) : (
+        <BoardTable
+          boards={lastModifiedBoards}
+          isLoading={isLoadingBoards}
+          error={boardError}
+          emptyMessage="No recently modified boards found."
+        />
+      )}
 
       <p className="text-3xl font-bold text-indigo-600 mb-4">All Boards</p>
-      {view === "grid" ? <BoardGrid /> : <BoardTable />}
+      {view === "grid" ? (
+        <BoardGrid
+          boards={boards}
+          isLoading={isLoadingBoards}
+          error={boardError}
+          emptyMessage="No boards found in this workspace."
+        />
+      ) : (
+        <BoardTable
+          boards={boards}
+          isLoading={isLoadingBoards}
+          error={boardError}
+          emptyMessage="No boards found in this workspace."
+        />
+      )}
 
       {showUserManagement && workspace && (
         <UserManagement
           isOpen={showUserManagement}
           onClose={() => setShowUserManagement(false)}
+          onLeft={() => navigate("/user/work-space")}
           workspace={workspace}
         />
       )}

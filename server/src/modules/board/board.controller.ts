@@ -39,7 +39,7 @@ export const _starredBoard = async (req: Request, res: Response, next: NextFunct
 
         const userId = req.user.id;
 
-        const board = await boardService.StarredBoard(userId);
+        const board = await boardService.starredBoard(userId);
 
         res.status(200).json({
             success: true,
@@ -104,6 +104,49 @@ export const _renameBoard = async (req: Request, res: Response, next: NextFuncti
             success: true,
             message: "Board renamed successfully.",
             board,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+
+// update thumbnail
+export const _updateThumbnail = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const boardId = req.params.boardId;
+        if (!boardId || Array.isArray(boardId)) {
+            return res.status(400).json({ message: "Invalid board Id" });
+        }
+
+        if (!req.file) {
+            return res.status(400).json({
+                message: "Thumbnail is required",
+            });
+        }
+
+        if (!req.user) {
+            return res.status(401).json({
+                message: "Unauthorized",
+            });
+        }
+
+        const board = await boardService.updateThumbnail(
+            boardId,
+            req.file.buffer
+        );
+
+        if (!board) {
+            return res.status(404).json({
+                success: false,
+                message: "Board not found",
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            thumbnail: board.thumbnail,
+            thumbnailPublicId: board.thumbnailPublicId,
         });
     } catch (error) {
         next(error);

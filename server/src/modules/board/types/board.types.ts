@@ -5,6 +5,7 @@ export interface IBoard {
     ownerId: Types.ObjectId;
     title: string;
     thumbnail: string | null;
+    thumbnailPublicId: string | null;
     starredBy: Types.ObjectId[];
     lastEditedBy?: Types.ObjectId;
     isActive: boolean;

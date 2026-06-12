@@ -1,5 +1,21 @@
 @import "tailwindcss";
 
 body {
-  cursor: url("./assets/cursor/select-cursor-24.svg") 8 8, auto;
+  cursor:
+    url("/cursor/select-cursor-24.svg") 8 8,
+    auto;
+}
+
+input,
+textarea {
+  cursor:
+    url("/cursor/text-cursor-24.svg") 8 8,
+    auto;
+}
+
+a,
+button {
+  cursor:
+    url("/cursor/pointer-cursor-24.svg") 8 8,
+    auto;
 }

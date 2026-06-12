@@ -7,6 +7,7 @@ import { BsXLg } from "react-icons/bs";
 interface UserManagementProps {
   isOpen: boolean;
   onClose: () => void;
+  onLeft: () => void;
   workspace: Workspace;
 }
 
@@ -32,6 +33,7 @@ const getErrorMessage = (error: unknown, fallback: string) => {
 const UserManagement = ({
   isOpen = true,
   onClose,
+  onLeft,
   workspace,
 }: UserManagementProps) => {
   const [currentUser] = useState<User | null>(() =>
@@ -119,6 +121,23 @@ const UserManagement = ({
       setError(getErrorMessage(err, "Failed to invite user."));
     } finally {
       setInviteLoading(false);
+    }
+  };
+
+  const handleLeaveWorkspace = async () => {
+    setError("");
+    setSuccessMsg("");
+
+    try {
+      const res = await workspaceService.leaveWorkspace(workspace._id);
+      setSuccessMsg(res.message || "You left the workspace.");
+
+      onClose();
+      onLeft?.();
+
+      window.location.replace("/user/work-space")
+    } catch (err) {
+      setError(getErrorMessage(err, "Failed to leave workspace."));
     }
   };
 
@@ -217,7 +236,6 @@ const UserManagement = ({
                 const email = userObj.email || "";
                 const avatar = userObj.avatar;
                 const initials = name.trim().charAt(0).toUpperCase() || "U";
-                const isMemberOwner = member.role === "owner";
 
                 return (
                   <div
@@ -250,28 +268,44 @@ const UserManagement = ({
                       </div>
                     </div>
 
-                    <div>
-                      {isMemberOwner ? (
-                        <span className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700 border border-indigo-100">
-                          Owner
-                        </span>
-                      ) : isOwner ? (
+                    <div className="flex items-center gap-2">
+                      {/* Role badge */}
+                      <span
+                        className={`px-3 py-1 text-xs font-semibold border rounded-full capitalize ${
+                          member.role === "owner"
+                            ? "bg-indigo-50 text-indigo-700 border-indigo-100"
+                            : "bg-gray-100 text-gray-600 border-gray-200"
+                        }`}
+                      >
+                        {member.role}
+                      </span>
+
+                      {/* Owner controls (only workspace owner can manage others) */}
+                      {isOwner && member.role !== "owner" && (
                         <select
                           value={member.role}
                           onChange={(e) =>
                             handleRoleChange(userObj._id, e.target.value)
                           }
-                          className="px-2 py-1 text-xs text-gray-600 border border-gray-300 hover:bg-gray-50 outline-none focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white font-medium"
+                          className="px-2 py-1 text-xs text-gray-600 border border-gray-300 bg-white font-medium outline-none focus:ring-2 focus:ring-indigo-500"
                         >
                           <option value="editor">Editor</option>
                           <option value="viewer">Viewer</option>
                           <option value="remove">Remove</option>
                         </select>
-                      ) : (
-                        <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-600 border border-gray-200 capitalize">
-                          {member.role}
-                        </span>
                       )}
+
+                      {/* Leave button (only for current user if not owner of workspace) */}
+                      {!isOwner &&
+                        userObj._id === currentUser?._id &&
+                        member.role !== "owner" && (
+                          <button
+                            onClick={handleLeaveWorkspace}
+                            className="px-3 py-1 text-xs font-medium text-red-600 border border-red-200 rounded-md hover:bg-red-50 transition"
+                          >
+                            Leave
+                          </button>
+                        )}
                     </div>
                   </div>
                 );

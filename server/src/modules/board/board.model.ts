@@ -31,6 +31,11 @@ const BoardSchema = new Schema<IBoard>({
         default: null,
     },
 
+    thumbnailPublicId: {
+        type: String,
+        default: null,
+    },
+
     starredBy: {
         type: [Schema.Types.ObjectId],
         ref: "User",

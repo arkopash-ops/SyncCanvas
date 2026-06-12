@@ -1,8 +1,9 @@
 import type { Types } from "mongoose";
-import type { IShape, IStickyNote } from "../board.types";
 import type { ILine } from "./line-element.types";
 import type { IText } from "./text-element.types";
 import type { IFreehand } from "./freehand-element.types";
+import type { IShape } from "./shape-element.types";
+import type { IStickyNote } from "./sticky-note-element.types";
 
 export const ElementTypes = [
     "rectangle",

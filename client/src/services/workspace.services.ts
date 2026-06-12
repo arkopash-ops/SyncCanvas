@@ -4,6 +4,7 @@ import type {
     InvitationResponse,
     RenameWorkspaceData,
     WorkspaceActionResponse,
+    WorkspaceBoardsResponse,
     WorkspaceListResponse,
     WorkspaceResponse,
     WorkspaceMembersResponse,
@@ -33,6 +34,13 @@ export const workspaceService = {
 
     getUserWorkspace: async (): Promise<UserWorkspacesResponse> => {
         const res = await api.get<UserWorkspacesResponse>("/workspace/my");
+        return res.data;
+    },
+
+    getWorkspaceBoard: async (workspaceId: string): Promise<WorkspaceBoardsResponse> => {
+        const res = await api.get<WorkspaceBoardsResponse>(
+            `/workspace/${workspaceId}/boards`
+        );
         return res.data;
     },
 
