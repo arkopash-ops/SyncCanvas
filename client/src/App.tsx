@@ -115,12 +115,12 @@ function App() {
             }
           />
 
+          <Route path="canvas/:boardId" element={<Canvas />} />
+
           <Route path="starred" element={<Starred />} />
 
           <Route path="settings" element={<Settings />} />
         </Route>
-
-        <Route path="/canvas" element={<Canvas />} />
 
         {/* catch all routes "*" */}
         <Route path="*" element={<NotFound />} />

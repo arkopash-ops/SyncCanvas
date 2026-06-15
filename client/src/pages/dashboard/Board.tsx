@@ -11,7 +11,10 @@ import { FaUsers } from "react-icons/fa";
 import UserManagement from "../../components/dashboard/board/UserManagement";
 import { socket } from "../../lib/socket";
 
-const getErrorMessage = (error: unknown, fallback = "Unable to load workspace.") => {
+const getErrorMessage = (
+  error: unknown,
+  fallback = "Unable to load workspace.",
+) => {
   if (
     typeof error === "object" &&
     error !== null &&
@@ -151,78 +154,83 @@ const Board = () => {
   const lastModifiedBoards = boards.slice(0, 3);
 
   return (
-    <div className="px-6 py-4 space-y-8 bg-white/50 min-h-screen">
-      <Breadcrumb
-        items={[
-          { label: "Work Space", to: "/user/work-space" },
-          { label: isLoadingWorkspace ? "Loading..." : workspaceName },
-        ]}
-      />
+    <>
+      <div className="px-6 py-4 space-y-8 bg-white/50 min-h-screen">
+        <Breadcrumb
+          items={[
+            { label: "Work Space", to: "/user/work-space" },
+            { label: isLoadingWorkspace ? "Loading..." : workspaceName },
+          ]}
+        />
 
-      {workspaceError && (
-        <p className="text-sm font-medium text-red-600">{workspaceError}</p>
-      )}
+        {workspaceError && (
+          <p className="text-sm font-medium text-red-600">{workspaceError}</p>
+        )}
 
-      <div className="flex items-center justify-between">
-        <p className="text-5xl font-extrabold text-[#24184f]">
-          {workspaceName}
-        </p>
+        <div className="bg-white/50 shadow-md rounded-lg border border-gray-200 p-4">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <p className="text-3xl md:text-5xl font-extrabold text-[#24184f] wrap-break-word">
+              {workspaceName}
+            </p>
 
-        <button
-          onClick={() => setShowUserManagement(true)}
-          className="flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 text-white font-medium hover:bg-indigo-700 transition"
-        >
-          <span className="material-symbols-outlined text-lg">
-            <FaUsers size={24} />
-          </span>
-          Members
-        </button>
+            <button
+              onClick={() => setShowUserManagement(true)}
+              className="flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 text-white font-medium hover:bg-indigo-700 transition"
+            >
+              <FaUsers size={20} />
+              Members
+            </button>
+          </div>
+
+          <div className="flex items-center justify-between mt-6">
+            <span className="text-gray-600">
+              Organize your projects with dedicated workspaces.
+            </span>
+
+            <ViewToggle view={view} onChange={handleViewChange} />
+          </div>
+        </div>
+
+        <div className="bg-white/50 shadow-md rounded-lg border border-gray-200 p-4">
+          <p className="text-3xl font-bold text-indigo-600 mb-4">
+            Last Modified Boards
+          </p>
+          {view === "grid" ? (
+            <BoardGrid
+              boards={lastModifiedBoards}
+              isLoading={isLoadingBoards}
+              error={boardError}
+              emptyMessage="No recently modified boards found."
+            />
+          ) : (
+            <BoardTable
+              boards={lastModifiedBoards}
+              isLoading={isLoadingBoards}
+              error={boardError}
+              emptyMessage="No recently modified boards found."
+            />
+          )}
+        </div>
+
+        <div className="bg-white/50 shadow-md rounded-lg border border-gray-200 p-4">
+          <p className="text-3xl font-bold text-indigo-600 mb-4">All Boards</p>
+          {view === "grid" ? (
+            <BoardGrid
+              boards={boards}
+              isLoading={isLoadingBoards}
+              error={boardError}
+              emptyMessage="No boards found in this workspace."
+            />
+          ) : (
+            <BoardTable
+              boards={boards}
+              isLoading={isLoadingBoards}
+              error={boardError}
+              emptyMessage="No boards found in this workspace."
+            />
+          )}
+        </div>
       </div>
-
-      <div className="flex items-center justify-between">
-        <span className="text-gray-600">
-          Organize your projects with dedicated workspaces.
-        </span>
-
-        <ViewToggle view={view} onChange={handleViewChange} />
-      </div>
-
-      <p className="text-3xl font-bold text-indigo-600 mb-4">
-        Last Modified Boards
-      </p>
-      {view === "grid" ? (
-        <BoardGrid
-          boards={lastModifiedBoards}
-          isLoading={isLoadingBoards}
-          error={boardError}
-          emptyMessage="No recently modified boards found."
-        />
-      ) : (
-        <BoardTable
-          boards={lastModifiedBoards}
-          isLoading={isLoadingBoards}
-          error={boardError}
-          emptyMessage="No recently modified boards found."
-        />
-      )}
-
-      <p className="text-3xl font-bold text-indigo-600 mb-4">All Boards</p>
-      {view === "grid" ? (
-        <BoardGrid
-          boards={boards}
-          isLoading={isLoadingBoards}
-          error={boardError}
-          emptyMessage="No boards found in this workspace."
-        />
-      ) : (
-        <BoardTable
-          boards={boards}
-          isLoading={isLoadingBoards}
-          error={boardError}
-          emptyMessage="No boards found in this workspace."
-        />
-      )}
-
       {showUserManagement && workspace && (
         <UserManagement
           isOpen={showUserManagement}
@@ -231,7 +239,7 @@ const Board = () => {
           workspace={workspace}
         />
       )}
-    </div>
+    </>
   );
 };
 

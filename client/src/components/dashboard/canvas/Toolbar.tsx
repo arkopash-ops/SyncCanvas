@@ -7,7 +7,6 @@ import {
   LuPaintbrush,
   LuEraser,
   LuChevronRight,
-  LuPaintBucket,
 } from "react-icons/lu";
 import { PiCursorFill, PiPencilSimple } from "react-icons/pi";
 import { TbTriangle } from "react-icons/tb";
@@ -16,7 +15,7 @@ export type ShapeTool = "rectangle" | "circle" | "triangle" | "line";
 
 export type DrawTool = "pencil" | "brush" | "eraser";
 
-export type Tool = "select" | ShapeTool | "fill" | "text" | DrawTool | "sticky";
+export type Tool = "select" | ShapeTool | "text" | DrawTool | "sticky";
 
 export type MenuType = "shapes" | "draw" | null;
 
@@ -78,11 +77,6 @@ const Toolbar = ({
       id: "shapes",
       icon: activeShape.icon,
       label: "Shapes",
-    },
-    {
-      id: "fill",
-      icon: LuPaintBucket,
-      label: "Fill",
     },
     {
       id: "text",

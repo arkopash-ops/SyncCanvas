@@ -95,7 +95,6 @@ export const createShape = (
                 rotation: 0,
             } satisfies TextElement;
 
-        case "brush":
         case "pencil":
             return {
                 id,
@@ -104,6 +103,34 @@ export const createShape = (
                 y,
                 points: [0, 0],
                 stroke: color,
+                strokeWidth: 2,
+                globalCompositeOperation: "source-over",
+                rotation: 0,
+            } satisfies FreehandElement;
+
+        case "brush":
+            return {
+                id,
+                type: "freehand",
+                x,
+                y,
+                points: [0, 0],
+                stroke: color,
+                strokeWidth: 10,
+                globalCompositeOperation: "source-over",
+                rotation: 0,
+            } satisfies FreehandElement;
+
+        case "eraser":
+            return {
+                id,
+                type: "freehand",
+                x,
+                y,
+                points: [0, 0],
+                stroke: "#000000",
+                strokeWidth: 20,
+                globalCompositeOperation: "destination-out",
                 rotation: 0,
             } satisfies FreehandElement;
 

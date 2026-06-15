@@ -2,12 +2,14 @@ import { useCallback } from "react";
 import type { ShapeElement } from "../../types/board.types";
 
 export const useShapeAction = (
-    setShapes: React.Dispatch<React.SetStateAction<ShapeElement[]>>
+    setShapes: React.Dispatch<React.SetStateAction<ShapeElement[]>>,
+    saveToHistory: () => void
 ) => {
     const updateShape = useCallback((
         id: string,
         attrs: Partial<ShapeElement>
     ) => {
+        saveToHistory();
         setShapes((prev) =>
             prev.map((shape) =>
                 shape.id === id
@@ -15,17 +17,19 @@ export const useShapeAction = (
                     : shape
             )
         );
-    }, [setShapes]);
+    }, [setShapes, saveToHistory]);
 
     const deleteShape = useCallback((id: string) => {
+        saveToHistory();
         setShapes((prev) =>
             prev.filter(
                 (shape) => shape.id !== id
             )
         );
-    }, [setShapes]);
+    }, [setShapes, saveToHistory]);
 
     const bringToFront = useCallback((id: string) => {
+        saveToHistory();
         setShapes((prev) => {
             const selected =
                 prev.find(
@@ -40,9 +44,10 @@ export const useShapeAction = (
                 selected,
             ];
         });
-    }, [setShapes]);
+    }, [setShapes, saveToHistory]);
 
     const sendToBack = useCallback((id: string) => {
+        saveToHistory();
         setShapes((prev) => {
             const selected =
                 prev.find((s) => s.id === id);
@@ -55,7 +60,7 @@ export const useShapeAction = (
                 ...prev.filter((s) => s.id !== id),
             ];
         });
-    }, [setShapes]);
+    }, [setShapes, saveToHistory]);
 
     return {
         updateShape,

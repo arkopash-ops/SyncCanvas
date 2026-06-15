@@ -11,9 +11,6 @@ export const getCursor = (tool: Tool) => {
         case "eraser":
             return "url('/cursor/eraser-cursor-24.svg') 8 8, auto";
 
-        case "fill":
-            return "url('/cursor/fill-color-cursor-24.svg') 8 8, auto";
-
         default:
             return "url('/cursor/plus-cursor-24.svg') 8 8, auto";
     }

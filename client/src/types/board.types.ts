@@ -38,6 +38,8 @@ export interface FreehandElement extends BaseElement {
     type: "freehand";
     points: number[]; // relative points [x1, y1, x2, y2...]
     stroke: string;
+    strokeWidth?: number;
+    globalCompositeOperation?: "source-over" | "destination-out";
 }
 
 export interface TextElement extends BaseElement {

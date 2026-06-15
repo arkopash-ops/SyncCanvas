@@ -5,6 +5,29 @@ const boardCursor = new Map<
     Map<string, IUserCursor>
 >();
 
+export const initializeCursor = (
+    boardId: string,
+    userId: string,
+    name: string,
+    avatar:string,
+    color: string,
+) => {
+    if (!boardCursor.has(boardId)) {
+        boardCursor.set(boardId, new Map());
+    }
+
+    boardCursor
+        .get(boardId)!
+        .set(userId, {
+            userId,
+            name,
+            avatar,
+            color,
+            x: 0,
+            y: 0,
+        });
+};
+
 export const updateCursor = (
     boardId: string,
     cursor: IUserCursor

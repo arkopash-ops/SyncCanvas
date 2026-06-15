@@ -21,18 +21,25 @@ const FreehandShape = ({
       points={shape.points}
       rotation={shape.rotation}
       stroke={shape.stroke}
-      strokeWidth={2}
+      strokeWidth={shape.strokeWidth ?? 2}
+      globalCompositeOperation={shape.globalCompositeOperation ?? "source-over"}
       tension={0.5}
       hitStrokeWidth={20}
 
       lineCap="round"
       lineJoin="round"
 
-      draggable={isSelectable}
+      draggable={isSelectable && shape.globalCompositeOperation !== "destination-out"}
 
-      onClick={(e) => onSelect(e, shape.id)}
+      onClick={(e) => {
+        if (shape.globalCompositeOperation === "destination-out") return;
+        onSelect(e, shape.id);
+      }}
 
-      onTap={(e) => onSelect(e, shape.id)}
+      onTap={(e) => {
+        if (shape.globalCompositeOperation === "destination-out") return;
+        onSelect(e, shape.id);
+      }}
 
       onDragEnd={(e) => onDragEnd(e, shape.id)}
       

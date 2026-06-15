@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { FaEllipsisVertical, FaStar } from "react-icons/fa6";
 import type { Board } from "../../../types";
 import { BiRightArrow } from "react-icons/bi";
+import { useNavigate } from "react-router-dom";
 
 interface BoardGridProps {
   boards: Board[];
@@ -23,6 +24,7 @@ const BoardGrid = ({
   error = "",
   emptyMessage = "No boards found.",
 }: BoardGridProps) => {
+  const navigate = useNavigate();
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [starred, setStarred] = useState<Record<string, boolean>>({});
 
@@ -61,7 +63,10 @@ const BoardGrid = ({
           role="button"
           tabIndex={0}
           className="group w-full overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
-          onClick={() => setOpenMenuId(null)}
+          onClick={() => {
+            setOpenMenuId(null);
+            navigate(`/user/canvas/${board._id}`);
+          }}
         >
           {/* IMAGE AREA */}
           <div ref={menuRef} className="relative">

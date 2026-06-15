@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { BiRightArrow } from "react-icons/bi";
 import { FaEllipsisVertical, FaStar } from "react-icons/fa6";
 import type { Board } from "../../../types";
+import { useNavigate } from "react-router-dom";
 
 interface BoardTableProps {
   boards: Board[];
@@ -23,6 +24,7 @@ const BoardTable = ({
   error = "",
   emptyMessage = "No boards found.",
 }: BoardTableProps) => {
+  const navigate = useNavigate();
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [starred, setStarred] = useState<Record<string, boolean>>({});
 
@@ -66,6 +68,10 @@ const BoardTable = ({
           role="button"
           tabIndex={0}
           className="group relative flex cursor-pointer overflow-visible rounded-3xl border border-gray-100 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
+          onClick={() => {
+            setOpenMenuId(null);
+            navigate(`/user/canvas/${board._id}`);
+          }}
         >
           <div
             ref={menuRef}

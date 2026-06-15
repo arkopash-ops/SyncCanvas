@@ -1,7 +1,7 @@
 export interface IUserCursor {
     userId: string;
     name: string;
-    avatar: string;
+    avatar:string;
     color: string;
     x: number;
     y: number;

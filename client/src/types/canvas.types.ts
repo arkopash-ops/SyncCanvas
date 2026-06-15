@@ -30,9 +30,8 @@ export interface CanvasStageProps {
     onMouseMove: (e: CanvasPointerEvent) => void;
     onMouseUp: () => void;
 
-    setSelectedId: (id: string | null) => void;
-
+    onSelect: (e: CanvasPointerEvent, id: string) => void;
+    onDragEnd: (e: KonvaEventObject<DragEvent>, id: string) => void;
     updateShape: (id: string, attrs: Partial<ShapeElement>) => void;
-
-    startEditing: (id: string, text: string) => void;
+    onTextEdit: (id: string, text: string) => void;
 }

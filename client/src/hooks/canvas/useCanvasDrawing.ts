@@ -17,6 +17,8 @@ interface UseCanvasDrawingProps {
         x: number;
         y: number;
     } | null;
+
+    saveToHistory: () => void;
 }
 
 export const useCanvasDrawing = ({
@@ -25,6 +27,7 @@ export const useCanvasDrawing = ({
     setShapes,
     setSelectedId,
     getPointerPosition,
+    saveToHistory,
 }: UseCanvasDrawingProps) => {
     const [isDrawing, setIsDrawing] = useState(false);
     const [drawingShapeId, setDrawingShapeId] = useState<string | null>(null);
@@ -52,6 +55,8 @@ export const useCanvasDrawing = ({
                 activeColor
             ) as TextElement;
 
+            saveToHistory();
+
             setShapes((prev) => [...prev, shape]);
 
             setSelectedId(shapeId);
@@ -72,6 +77,8 @@ export const useCanvasDrawing = ({
         setDrawingShapeId(shapeId);
 
         setStartPos({ x: pos.x, y: pos.y });
+
+        saveToHistory();
 
         setShapes((prev) => [...prev, shape]);
     };

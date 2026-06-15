@@ -2,6 +2,7 @@ import { Layer, Rect, Stage } from "react-konva";
 import type { CanvasStageProps } from "../../../types/canvas.types";
 import ShapeRenderer from "./ShapeRenderer";
 import TransformerManager from "./TransformerManager";
+import { getCursor } from "../../../utils/getCursor";
 
 const CanvasStage = ({
   viewport,
@@ -13,10 +14,14 @@ const CanvasStage = ({
   onMouseDown,
   onMouseMove,
   onMouseUp,
-  onSelectShape,
+  onSelect,
+  onDragEnd,
+  updateShape,
+  onTextEdit,
 }: CanvasStageProps) => {
   return (
     <Stage
+      style={{ cursor: getCursor(activeTool) }}
       width={viewport.width}
       height={viewport.height}
       onWheel={onWheel}
@@ -27,12 +32,8 @@ const CanvasStage = ({
       onTouchMove={onMouseMove}
       onTouchEnd={onMouseUp}
     >
-      <Layer
-        x={camera.x}
-        y={camera.y}
-        scaleX={camera.scale}
-        scaleY={camera.scale}
-      >
+      {/* Background layer: unaffected by destination-out on drawing layer */}
+      <Layer>
         <Rect
           x={-20000}
           y={-20000}
@@ -41,12 +42,22 @@ const CanvasStage = ({
           fill="#ffffff"
           name="background"
         />
+      </Layer>
 
+      {/* Drawing layer */}
+      <Layer
+        x={camera.x}
+        y={camera.y}
+        scaleX={camera.scale}
+        scaleY={camera.scale}
+      >
         <ShapeRenderer
           shapes={shapes}
           activeTool={activeTool}
-          selectedId={selectedId}
-          onSelectShape={onSelectShape}
+          onSelect={onSelect}
+          onDragEnd={onDragEnd}
+          updateShape={updateShape}
+          onTextEdit={onTextEdit}
         />
 
         <TransformerManager
