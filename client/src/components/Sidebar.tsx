@@ -26,31 +26,35 @@ const Sidebar = () => {
 
   return (
     <>
-      <aside className="flex h-full w-64 flex-col border-r border-gray-200 bg-white/70">
+      <aside className="flex h-full w-20 md:w-64 flex-col border-r border-gray-200 bg-white/70 transition-all duration-300">
         {/* Top Section */}
         <div className="flex-1">
-          <NewWorkspaceSideBar onClick={() => setOpen(true)} />
+          <div className="px-2 md:px-4">
+            <NewWorkspaceSideBar onClick={() => setOpen(true)} />
+          </div>
 
-          <div className="px-6 mt-6 text-xs text-gray-400 font-semibold tracking-widest uppercase">
+          <div className="hidden md:block px-6 mt-6 text-xs text-gray-400 font-semibold tracking-widest uppercase">
             Main Menu
           </div>
 
           {/* Menu */}
-          <nav className="flex flex-col gap-2 px-6 mt-4">
+          <nav className="flex flex-col gap-2 px-2 md:px-4 mt-4">
             {menuItems.map(({ icon: Icon, label, path }) => (
               <NavLink
                 key={label}
                 to={path}
-                className={({ isActive }) =>
-                  `flex items-center gap-3 px-3 py-2 rounded-md transition ${
+                className={({
+                  isActive,
+                }) => `flex h-12 items-center justify-center md:justify-start px-2 md:px-4 rounded-xl transition-all
+                  ${
                     isActive
                       ? "bg-indigo-600 text-white"
                       : "text-indigo-600 hover:bg-indigo-50"
-                  }`
-                }
+                  }`}
               >
-                <Icon className="text-current" />
-                <span>{label}</span>
+                <Icon className="text-2xl shrink-0" />
+
+                <span className="hidden md:block ml-3">{label}</span>
               </NavLink>
             ))}
           </nav>
@@ -60,14 +64,14 @@ const Sidebar = () => {
         <div className="p-4 border-t border-slate-200/80">
           <button
             type="button"
-            className="group flex w-full items-center gap-4 px-4 py-3 rounded-2xl hover:bg-red-50 transition-all duration-300"
+            className="group flex w-full items-center justify-center md:justify-start gap-4 px-2 md:px-4 py-3 rounded-2xl hover:bg-red-50 transition-all duration-300"
             onClick={() => setShowLogoutModal(true)}
           >
             <div className="w-11 h-11 rounded-xl bg-red-50 flex items-center justify-center text-red-500">
               <BiLogOut />
             </div>
 
-            <div className="text-left">
+            <div className="hidden md:block text-left">
               <p className="font-semibold text-sm text-red-500">Logout</p>
               <p className="text-xs text-red-400">Secure sign out</p>
             </div>

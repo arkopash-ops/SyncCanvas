@@ -3,11 +3,13 @@ import { useNavigate, useParams } from "react-router-dom";
 import type { Board as WorkspaceBoard, User, Workspace } from "../../types";
 import { userServices } from "../../services/user.services";
 import { workspaceService } from "../../services/workspace.services";
+import { boardService } from "../../services/board.services";
 import ViewToggle from "../../components/dashboard/board/ViewToggle";
 import BoardGrid from "../../components/dashboard/board/BoardGrid";
 import BoardTable from "../../components/dashboard/board/BoardTable";
 import Breadcrumb from "../../components/Breadcrumb";
 import { FaUsers } from "react-icons/fa";
+import { FiPlus, FiX } from "react-icons/fi";
 import UserManagement from "../../components/dashboard/board/UserManagement";
 import { socket } from "../../lib/socket";
 
@@ -44,6 +46,18 @@ const Board = () => {
   const [workspaceError, setWorkspaceError] = useState("");
   const [boardError, setBoardError] = useState("");
   const [showUserManagement, setShowUserManagement] = useState(false);
+
+  // Create board modal state
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [newBoardTitle, setNewBoardTitle] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
+  const [createError, setCreateError] = useState("");
+
+  const [lastModifiedBoards, setLastModifiedBoards] = useState<
+    WorkspaceBoard[]
+  >([]);
+  const [isLoadingLastModified, setIsLoadingLastModified] = useState(true);
+  const [lastModifiedError, setLastModifiedError] = useState("");
 
   const storageKey = user?.email ? `workspace-view-${user.email}` : null;
 
@@ -150,8 +164,59 @@ const Board = () => {
     };
   }, [workspaceId]);
 
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadLastModified = async () => {
+      if (!workspaceId) return;
+
+      setIsLoadingLastModified(true);
+      setLastModifiedError("");
+
+      try {
+        const res = await boardService.lastModifiedBoard(workspaceId, 3);
+        if (isMounted) setLastModifiedBoards(res.board || []);
+      } catch (err) {
+        if (isMounted)
+          setLastModifiedError(
+            getErrorMessage(err, "Unable to load last modified boards."),
+          );
+      } finally {
+        if (isMounted) setIsLoadingLastModified(false);
+      }
+    };
+
+    loadLastModified();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [workspaceId, boards]);
+
+  const handleCreateBoard = async () => {
+    const title = newBoardTitle.trim();
+    if (!title) {
+      setCreateError("Board title is required.");
+      return;
+    }
+    if (!workspaceId) return;
+
+    setIsCreating(true);
+    setCreateError("");
+
+    try {
+      const res = await boardService.createBoard({ workspaceId, title });
+      setBoards((prev) => [res.board, ...prev]);
+      setShowCreateModal(false);
+      setNewBoardTitle("");
+    } catch (err) {
+      setCreateError(getErrorMessage(err, "Failed to create board."));
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
   const workspaceName = workspace?.name ?? "Workspace";
-  const lastModifiedBoards = boards.slice(0, 3);
 
   return (
     <>
@@ -173,13 +238,29 @@ const Board = () => {
               {workspaceName}
             </p>
 
-            <button
-              onClick={() => setShowUserManagement(true)}
-              className="flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 text-white font-medium hover:bg-indigo-700 transition"
-            >
-              <FaUsers size={20} />
-              Members
-            </button>
+            <div className="flex items-center gap-3 flex-wrap">
+              {/* Create New Board */}
+              <button
+                onClick={() => {
+                  setCreateError("");
+                  setNewBoardTitle("");
+                  setShowCreateModal(true);
+                }}
+                className="flex items-center gap-2 rounded-xl bg-violet-600 px-5 py-3 text-white font-medium hover:bg-violet-700 transition"
+              >
+                <FiPlus size={20} />
+                Create New Board
+              </button>
+
+              {/* Members */}
+              <button
+                onClick={() => setShowUserManagement(true)}
+                className="flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 text-white font-medium hover:bg-indigo-700 transition"
+              >
+                <FaUsers size={20} />
+                Members
+              </button>
+            </div>
           </div>
 
           <div className="flex items-center justify-between mt-6">
@@ -191,46 +272,52 @@ const Board = () => {
           </div>
         </div>
 
-        <div className="bg-white/50 shadow-md rounded-lg border border-gray-200 p-4">
-          <p className="text-3xl font-bold text-indigo-600 mb-4">
-            Last Modified Boards
-          </p>
-          {view === "grid" ? (
-            <BoardGrid
-              boards={lastModifiedBoards}
-              isLoading={isLoadingBoards}
-              error={boardError}
-              emptyMessage="No recently modified boards found."
-            />
-          ) : (
-            <BoardTable
-              boards={lastModifiedBoards}
-              isLoading={isLoadingBoards}
-              error={boardError}
-              emptyMessage="No recently modified boards found."
-            />
-          )}
-        </div>
+        <h2 className="text-2xl font-bold text-[#24184f] mb-6 flex items-center gap-2">
+          <span className="w-2.5 h-6 bg-[#24184f] rounded-full inline-block"></span>
+          Last Modified Boards
+        </h2>
+        {view === "grid" ? (
+          <BoardGrid
+            boards={lastModifiedBoards}
+            isLoading={isLoadingLastModified}
+            error={lastModifiedError}
+            emptyMessage="No recently modified boards found."
+            onBoardsChange={setBoards}
+          />
+        ) : (
+          <BoardTable
+            boards={lastModifiedBoards}
+            isLoading={isLoadingLastModified}
+            error={lastModifiedError}
+            emptyMessage="No recently modified boards found."
+            onBoardsChange={setBoards}
+          />
+        )}
 
-        <div className="bg-white/50 shadow-md rounded-lg border border-gray-200 p-4">
-          <p className="text-3xl font-bold text-indigo-600 mb-4">All Boards</p>
-          {view === "grid" ? (
-            <BoardGrid
-              boards={boards}
-              isLoading={isLoadingBoards}
-              error={boardError}
-              emptyMessage="No boards found in this workspace."
-            />
-          ) : (
-            <BoardTable
-              boards={boards}
-              isLoading={isLoadingBoards}
-              error={boardError}
-              emptyMessage="No boards found in this workspace."
-            />
-          )}
-        </div>
+        <h2 className="text-2xl font-bold text-[#24184f] mb-6 flex items-center gap-2">
+          <span className="w-2.5 h-6 bg-[#635bff] rounded-full inline-block"></span>
+          All Boards
+        </h2>
+        {view === "grid" ? (
+          <BoardGrid
+            boards={boards}
+            isLoading={isLoadingBoards}
+            error={boardError}
+            emptyMessage="No boards found in this workspace."
+            onBoardsChange={setBoards}
+          />
+        ) : (
+          <BoardTable
+            boards={boards}
+            isLoading={isLoadingBoards}
+            error={boardError}
+            emptyMessage="No boards found in this workspace."
+            onBoardsChange={setBoards}
+          />
+        )}
       </div>
+
+      {/* User Management Modal */}
       {showUserManagement && workspace && (
         <UserManagement
           isOpen={showUserManagement}
@@ -238,6 +325,106 @@ const Board = () => {
           onLeft={() => navigate("/user/work-space")}
           workspace={workspace}
         />
+      )}
+
+      {/* Create Board Modal */}
+      {showCreateModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+          onClick={() => setShowCreateModal(false)}
+        >
+          <div
+            className="relative w-full max-w-md mx-4 rounded-3xl bg-white shadow-2xl p-8"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Close */}
+            <button
+              onClick={() => setShowCreateModal(false)}
+              className="absolute right-5 top-5 rounded-full p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition"
+            >
+              <FiX size={20} />
+            </button>
+
+            {/* Header */}
+            <div className="mb-6">
+              <h2 className="text-2xl font-extrabold text-[#24184f]">
+                Create New Board
+              </h2>
+              <p className="mt-1 text-sm text-gray-500">
+                Give your board a name to get started.
+              </p>
+            </div>
+
+            {/* Input */}
+            <label className="block text-sm font-semibold text-gray-700 mb-1">
+              Board Title
+            </label>
+            <input
+              autoFocus
+              type="text"
+              placeholder="e.g. Product Roadmap"
+              value={newBoardTitle}
+              onChange={(e) => {
+                setNewBoardTitle(e.target.value);
+                setCreateError("");
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleCreateBoard();
+                if (e.key === "Escape") setShowCreateModal(false);
+              }}
+              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-800 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-violet-200"
+            />
+
+            {createError && (
+              <p className="mt-2 text-sm text-red-500">{createError}</p>
+            )}
+
+            {/* Actions */}
+            <div className="mt-6 flex items-center gap-3 justify-end">
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="rounded-xl border border-gray-200 px-5 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50 transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCreateBoard}
+                disabled={isCreating}
+                className="flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 transition disabled:opacity-60"
+              >
+                {isCreating ? (
+                  <>
+                    <svg
+                      className="h-4 w-4 animate-spin"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8v8z"
+                      />
+                    </svg>
+                    Creating…
+                  </>
+                ) : (
+                  <>
+                    <FiPlus size={16} />
+                    Create Board
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </>
   );

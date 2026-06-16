@@ -1,4 +1,4 @@
-import type { IBoard } from "../board.types";
+import type { IBoard } from "./board.types";
 
 export interface IStickyNote extends IBoard {
     type: "sticky-note";

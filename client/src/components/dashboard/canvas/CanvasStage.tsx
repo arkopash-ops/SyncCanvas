@@ -9,6 +9,7 @@ const CanvasStage = ({
   camera,
   activeTool,
   selectedId,
+  canEdit,
   shapes,
   onWheel,
   onMouseDown,
@@ -18,9 +19,11 @@ const CanvasStage = ({
   onDragEnd,
   updateShape,
   onTextEdit,
+  stageRef,
 }: CanvasStageProps) => {
   return (
     <Stage
+      ref={stageRef}
       style={{ cursor: getCursor(activeTool) }}
       width={viewport.width}
       height={viewport.height}
@@ -54,6 +57,7 @@ const CanvasStage = ({
         <ShapeRenderer
           shapes={shapes}
           activeTool={activeTool}
+          canEdit={canEdit}
           onSelect={onSelect}
           onDragEnd={onDragEnd}
           updateShape={updateShape}
@@ -63,6 +67,7 @@ const CanvasStage = ({
         <TransformerManager
           selectedId={selectedId}
           activeTool={activeTool}
+          canEdit={canEdit}
           shapes={shapes}
         />
       </Layer>

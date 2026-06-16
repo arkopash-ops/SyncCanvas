@@ -148,15 +148,15 @@ const Navbar = () => {
   }, []);
 
   return (
-    <nav className="flex items-center justify-between px-6 py-3 bg-white/50 shadow-md">
+    <nav className="flex items-center justify-between px-3 md:px-6 py-3 bg-white/50 shadow-md">
       <div
-        className="text-[#3f28d9] text-3xl font-extrabold cursor-pointer"
+        className="text-2xl md:text-3xl font-extrabold font-[cursive] text-[#3f28d9]"
         onClick={() => navigate("/user/work-space")}
       >
         SyncCanvas
       </div>
 
-      <div className="flex-1 flex justify-center relative search-container">
+      <div className="hidden md:flex flex-1 justify-center relative search-container">
         <div className="flex items-center w-full max-w-md border border-gray-300 px-3 py-2 bg-white relative">
           <FaSearch className="text-indigo-600 mr-2" />
 
@@ -226,7 +226,7 @@ const Navbar = () => {
       </div>
 
       <div className="flex items-center gap-3">
-        <p className="text-xl font-semibold">
+        <p className="hidden md:block text-xl font-semibold">
           <span className="text-[#3f28d9]">Hello, </span>
           <span className="text-indigo-500">{user?.name}</span>
         </p>

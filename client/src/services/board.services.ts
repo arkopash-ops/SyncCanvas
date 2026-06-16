@@ -36,15 +36,18 @@ export const boardService = {
         return res.data;
     },
 
-    updateThumbnail: async (data: UpdateThumbnailData): Promise<UpdateThumbnailResponse> => {
+    updateThumbnail: async (
+        boardId: string,
+        data: UpdateThumbnailData
+    ): Promise<UpdateThumbnailResponse> => {
         const formData = new FormData();
         formData.append("thumbnail", data.thumbnail);
 
-        const res = await api.post<UpdateThumbnailResponse>("/:boardId/thumbnail", formData, {
-            headers: {
-                "Content-Type": "multipart/form-data"
-            },
-        });
+        const res = await api.patch<UpdateThumbnailResponse>(
+            `/board/${boardId}/thumbnail`,
+            formData,
+            { headers: { "Content-Type": "multipart/form-data" } }
+        );
 
         return res.data;
     },
@@ -59,8 +62,15 @@ export const boardService = {
         return res.data;
     },
 
-    duplicateBoard: async (boardId: string): Promise<BoardResponse> => {
-        const res = await api.post<BoardResponse>(`/board/${boardId}/duplicate`);
+    duplicateBoard: async (boardId: string): Promise<BoardListResponse> => {
+        const res = await api.post<BoardListResponse>(`/board/${boardId}/duplicate`);
+        return res.data;
+    },
+
+    lastModifiedBoard: async (workspaceId: string, limit = 3): Promise<BoardListResponse> => {
+        const res = await api.get<BoardListResponse>(`/board/last-modified/${workspaceId}`, {
+            params: { limit },
+        });
         return res.data;
     },
 };

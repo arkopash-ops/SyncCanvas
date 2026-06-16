@@ -1,4 +1,6 @@
 import type { KonvaEventObject } from "konva/lib/Node";
+import type { RefObject } from "react";
+import type Konva from "konva";
 import type { Tool } from "../components/dashboard/canvas/Toolbar";
 import type { ShapeElement } from "./board.types";
 
@@ -22,6 +24,7 @@ export interface CanvasStageProps {
 
     activeTool: Tool;
     selectedId: string | null;
+    canEdit: boolean;
 
     shapes: ShapeElement[];
 
@@ -34,4 +37,6 @@ export interface CanvasStageProps {
     onDragEnd: (e: KonvaEventObject<DragEvent>, id: string) => void;
     updateShape: (id: string, attrs: Partial<ShapeElement>) => void;
     onTextEdit: (id: string, text: string) => void;
+
+    stageRef?: RefObject<Konva.Stage | null>;
 }

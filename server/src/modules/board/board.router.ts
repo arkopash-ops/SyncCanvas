@@ -5,7 +5,7 @@ import { upload } from "../../middleware/upload.middleware";
 
 const router = Router();
 
-// create board (only owner)
+// create board (only owner & editor)
 router.post(
     "/",
     protect,
@@ -17,6 +17,13 @@ router.get(
     "/starred",
     protect,
     boardController._starredBoard,
+);
+
+// last modified boards (workspace-specific)
+router.get(
+    "/last-modified/:workspaceId",
+    protect,
+    boardController._lastModifiedBoard,
 );
 
 // get board by Id

@@ -99,7 +99,7 @@ const Auth = () => {
       <section className="w-full max-w-110 border border-[#c7c2e3] bg-white/90 px-10 py-11 shadow-[0_18px_45px_rgba(60,45,140,0.13)] backdrop-blur-md">
         {/* Header */}
         <div className="mb-8 text-center">
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#443c65]">
+          <p className="text-lg font-bold font-[cursive] tracking-[0.24em] text-[#443c65]">
             SyncCanvas
           </p>
           <h1 className="mt-3 text-3xl font-extrabold text-[#24184f]">

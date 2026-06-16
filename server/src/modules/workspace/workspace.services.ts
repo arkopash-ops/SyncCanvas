@@ -1,4 +1,5 @@
 import { Types } from "mongoose";
+import cloudinary from "../../config/cloudinary";
 import { uploadWorkspaceImageToCloudinary } from "../../utils/cloudinary";
 import type { CreateWorkspace, WorkspaceDocument, WorkspaceGrouped } from "./workspace.types";
 import type { InviteUserParams } from "../invitation/invitation.types";
@@ -88,7 +89,8 @@ export const getWorkspaceBoard = async (
     }
 
     const board = await BoardModel.find({ workspaceId })
-        .select("_id title thumbnail isActive isStarred lastEditedBy createdAt updatedAt ownerId")
+        .select("_id title thumbnail isActive isStarred starredBy lastEditedBy createdAt updatedAt ownerId")
+        .populate("lastEditedBy", "name")
         .sort({ updatedAt: -1 });
 
     return board;
@@ -197,7 +199,7 @@ export const toggleWorkspaceStatus = async (
 };
 
 
-// delete workspace (only by owner)
+// delete workspace (only by owner) — cascades to boards, invitations & notifications
 export const deleteWorkspace = async (
     workspaceId: string,
     ownerId: string
@@ -215,9 +217,30 @@ export const deleteWorkspace = async (
         throw err;
     }
 
-    await WorkspaceModel.findByIdAndDelete(workspaceId);
+    // Step 1: fetch all boards so we can clean up their Cloudinary thumbnails
+    const boards = await BoardModel.find({ workspaceId }).select("thumbnailPublicId");
+
+    // Step 2: delete Cloudinary thumbnail assets (fire all in parallel, ignore individual failures)
+    const cloudinaryDeletions = boards
+        .filter((b) => b.thumbnailPublicId)
+        .map((b) =>
+            cloudinary.uploader
+                .destroy(b.thumbnailPublicId as string)
+                .catch((err) => console.error(`Failed to delete Cloudinary asset ${b.thumbnailPublicId}:`, err))
+        );
+    await Promise.allSettled(cloudinaryDeletions);
+
+    // Step 3: delete all boards belonging to this workspace
+    await BoardModel.deleteMany({ workspaceId });
+
+    // Step 4: delete all invitations for this workspace
     await WorkspaceInvitationModel.deleteMany({ workspaceId });
+
+    // Step 5: delete all notifications related to this workspace
     await NotificationModel.deleteMany({ "metadata.workspaceId": workspaceId });
+
+    // Step 6: delete the workspace itself
+    await WorkspaceModel.findByIdAndDelete(workspaceId);
 
     return true;
 };

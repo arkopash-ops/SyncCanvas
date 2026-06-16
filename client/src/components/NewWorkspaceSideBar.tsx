@@ -6,13 +6,13 @@ interface CreateWorkspaceCardProps {
 
 const NewWorkspaceSideBar = ({ onClick }: CreateWorkspaceCardProps) => {
   return (
-    <div className="px-6 mt-6">
+    <div className="px-2 md:px-6 mt-6">
       <button
         onClick={onClick}
-        className="w-full flex items-center justify-center gap-2 bg-[#3f28d9] text-white py-2 rounded-md hover:bg-indigo-700 transition"
+        className="w-full h-12 flex items-center justify-center md:justify-center rounded-xl bg-[#3f28d9] text-white hover:bg-indigo-700 transition-all"
       >
-        <FaPlus />
-        New Workspace
+        <FaPlus className="text-lg shrink-0" />
+        <span className="hidden md:block ml-2">New Workspace</span>
       </button>
     </div>
   );

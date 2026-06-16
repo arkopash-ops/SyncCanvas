@@ -5,6 +5,7 @@ interface Props {
   shape: TextElement | StickyElement;
   camera: CameraState;
   value: string;
+  canEdit: boolean;
   onChange: (value: string) => void;
   onFinish: () => void;
 }
@@ -13,6 +14,7 @@ const TextEditorOverlay = ({
   shape,
   camera,
   value,
+  canEdit,
   onChange,
   onFinish,
 }: Props) => {
@@ -52,6 +54,7 @@ const TextEditorOverlay = ({
           "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
       }}
       value={value}
+      readOnly={!canEdit}
       onChange={(e) => onChange(e.target.value)}
       onBlur={onFinish}
       onKeyDown={(e) => {

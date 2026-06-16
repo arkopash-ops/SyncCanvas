@@ -1,4 +1,6 @@
 import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { FiArrowLeft } from "react-icons/fi";
 import type { IUserCursor } from "../../../types/board-presence.types";
 
 type EnrichedMember = IUserCursor & {
@@ -8,6 +10,7 @@ type EnrichedMember = IUserCursor & {
 interface CanvasNavbarProps {
   boardName: string;
   members: EnrichedMember[];
+  canEdit: boolean;
 }
 
 const getRoleLabel = (role?: string) => {
@@ -23,7 +26,8 @@ const getRoleLabel = (role?: string) => {
   }
 };
 
-const CanvasNavbar = ({ boardName, members }: CanvasNavbarProps) => {
+const CanvasNavbar = ({ boardName, members, canEdit }: CanvasNavbarProps) => {
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -40,8 +44,27 @@ const CanvasNavbar = ({ boardName, members }: CanvasNavbarProps) => {
 
   return (
     <div className="flex items-center justify-between px-6 py-3 bg-white/50 shadow-md">
-      <div className="flex-1">
+      <div className="flex flex-1 items-center gap-4">
+        {/* Back button */}
+        <button
+          type="button"
+          onClick={() => navigate(-1)}
+          title="Go back"
+          className="flex items-center justify-center rounded-xl p-2.5 text-gray-600 transition"
+        >
+          <FiArrowLeft size={20} />
+        </button>
+
         <h1 className="text-[#3f28d9] text-3xl font-extrabold cursor-pointer">{boardName}</h1>
+
+        {!canEdit && (
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700 border border-amber-300">
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 4.5C7.305 4.5 3.135 7.23 1.5 12c1.635 4.77 5.805 7.5 10.5 7.5S20.865 16.77 22.5 12C20.865 7.23 16.695 4.5 12 4.5zm0 12.5a5 5 0 110-10 5 5 0 010 10zm0-8a3 3 0 100 6 3 3 0 000-6z"/>
+            </svg>
+            View Only
+          </span>
+        )}
       </div>
 
       <div className="relative" ref={dropdownRef}>

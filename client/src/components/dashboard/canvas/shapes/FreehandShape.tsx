@@ -7,6 +7,7 @@ import type { BaseShapeProps } from "../../../../types/shape-renderer.types";
 const FreehandShape = ({
   shape,
   isSelectable,
+  canEdit,
   onSelect,
   onDragEnd,
   updateShape,
@@ -29,7 +30,7 @@ const FreehandShape = ({
       lineCap="round"
       lineJoin="round"
 
-      draggable={isSelectable && shape.globalCompositeOperation !== "destination-out"}
+      draggable={isSelectable && canEdit && shape.globalCompositeOperation !== "destination-out"}
 
       onClick={(e) => {
         if (shape.globalCompositeOperation === "destination-out") return;
@@ -44,6 +45,7 @@ const FreehandShape = ({
       onDragEnd={(e) => onDragEnd(e, shape.id)}
       
       onTransformEnd={(e) => {
+        if (!canEdit) return;
         const node = e.target as Konva.Line;
 
         const scaleX = node.scaleX();

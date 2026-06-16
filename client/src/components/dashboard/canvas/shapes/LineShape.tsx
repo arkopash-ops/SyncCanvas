@@ -7,6 +7,7 @@ import type { BaseShapeProps } from "../../../../types/shape-renderer.types";
 const LineShape = ({
   shape,
   isSelectable,
+  canEdit,
   onSelect,
   onDragEnd,
   updateShape,
@@ -23,7 +24,7 @@ const LineShape = ({
       rotation={shape.rotation}
       stroke={shape.stroke}
       strokeWidth={2}
-      draggable={isSelectable}
+      draggable={isSelectable && canEdit}
 
       lineCap="round"
       lineJoin="round"
@@ -35,6 +36,7 @@ const LineShape = ({
       onDragEnd={(e) => onDragEnd(e, shape.id)}
 
       onTransformEnd={(e) => {
+        if (!canEdit) return;
         const node = e.target as Konva.Line;
 
         const scaleX = node.scaleX();

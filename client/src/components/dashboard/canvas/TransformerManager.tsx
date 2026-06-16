@@ -7,10 +7,11 @@ import { Transformer } from "react-konva";
 interface Props {
   selectedId: string | null;
   activeTool: Tool;
+  canEdit: boolean;
   shapes: ShapeElement[];
 }
 
-const TransformerManager = ({ selectedId, activeTool, shapes }: Props) => {
+const TransformerManager = ({ selectedId, activeTool, canEdit, shapes }: Props) => {
   const transformerRef = useRef<Konva.Transformer>(null);
 
   useEffect(() => {
@@ -36,7 +37,7 @@ const TransformerManager = ({ selectedId, activeTool, shapes }: Props) => {
     transformerRef.current?.nodes([]);
   }, [selectedId, activeTool, shapes]);
 
-  if (activeTool !== "select" || !selectedId) return null;
+  if (activeTool !== "select" || !selectedId || !canEdit) return null;
 
   const selectedShape = shapes.find((s) => s.id === selectedId);
 

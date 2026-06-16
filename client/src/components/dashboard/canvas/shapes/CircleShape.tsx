@@ -7,6 +7,7 @@ import type { CircleElement } from "../../../../types/board.types";
 const CircleShape = ({
   shape,
   isSelectable,
+  canEdit,
   onSelect,
   onDragEnd,
   updateShape,
@@ -25,7 +26,7 @@ const CircleShape = ({
       fill={shape.fill}
       strokeWidth={2}
 
-      draggable={isSelectable}
+      draggable={isSelectable && canEdit}
 
       onClick={(e) => onSelect(e, shape.id)}
 
@@ -34,6 +35,7 @@ const CircleShape = ({
       onDragEnd={(e) => onDragEnd(e, shape.id)}
 
       onTransformEnd={(e) => {
+        if (!canEdit) return;
         const node = e.target as Konva.Circle;
 
         const scaleX = node.scaleX();

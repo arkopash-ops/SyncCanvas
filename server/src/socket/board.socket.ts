@@ -28,7 +28,7 @@ interface CursorMovePayload {
     cursor: IUserCursor;
 }
 
-const USER_COLORS = [
+const USER_COLORS: string[] = [
     "#FF6B6B", "#4ECDC4", "#45B7D1", "#FFA07A", "#98D8C8",
     "#F7DC6F", "#BB8FCE", "#85C1E2", "#F8B88B", "#B19CD9"
 ];
@@ -44,23 +44,19 @@ export const registerBoardSocket = (socket: Socket) => {
 
         console.log(`Socket ${socket.id} joined board ${boardId}`);
 
-        // Initialize cursor for this user with a unique color
-        const color = USER_COLORS[colorIndex % USER_COLORS.length];
+        const color = USER_COLORS[colorIndex % USER_COLORS.length]!;
         colorIndex++;
 
-        initializeCursor(boardId, user.userId, user.name, color);
+        initializeCursor(boardId, user.userId, user.name, "", color);
 
         const doc = await loadBoardDoc(boardId);
         const state = Y.encodeStateAsUpdate(doc);
 
-        // Send the full Yjs state to the joining client
         socket.emit("board-init", Array.from(state));
 
-        // Send existing cursors so the joining client can see who is present
         const cursors = getBoardCursor(boardId);
         socket.emit("board-cursor", cursors);
 
-        // Broadcast to other users that a new member joined
         socket.to(boardId).emit("board-cursor", cursors);
     });
 
@@ -69,13 +65,10 @@ export const registerBoardSocket = (socket: Socket) => {
 
         Y.applyUpdate(doc, new Uint8Array(update));
 
-        // Hot path: write to Redis immediately (fast)
         await persistBoard(boardId, doc);
 
-        // Cold path: debounced write to MongoDB (10 s after last update)
         scheduleSave(boardId, doc);
 
-        // Broadcast the raw incremental update to all other peers in the room
         socket.to(boardId).emit("board-update", update);
     });
 

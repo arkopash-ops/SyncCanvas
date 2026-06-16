@@ -2,7 +2,7 @@ import type { Request, Response, NextFunction } from "express";
 import * as boardService from "./board.services";
 
 
-// create board (only owner)
+// create board (only owner & editor)
 export const _createBoard = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { workspaceId, title } = req.body;
@@ -232,6 +232,37 @@ export const _duplicateBoard = async (req: Request, res: Response, next: NextFun
             success: true,
             message: "Board has been duplicated.",
             board
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+
+// last modified boards (workspace-specific)
+export const _lastModifiedBoard = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { workspaceId } = req.params;
+        if (!workspaceId || Array.isArray(workspaceId)) {
+            return res.status(400).json({ message: "Invalid workspace Id" });
+        }
+
+        if (!req.user) {
+            return res.status(401).json({ message: "Unauthorized" });
+        }
+
+        const limit = parseInt(req.query.limit as string) || 3;
+
+        const boards = await boardService.lastModifiedBoard(
+            workspaceId,
+            req.user.id,
+            limit
+        );
+
+        res.status(200).json({
+            success: true,
+            count: boards.length,
+            board: boards,
         });
     } catch (error) {
         next(error);

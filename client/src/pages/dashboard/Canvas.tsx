@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
+import type Konva from "konva";
 
 import type { ShapeElement } from "../../types/board.types";
 import type { IUserCursor } from "../../types/board-presence.types";
@@ -30,6 +31,9 @@ const Canvas = () => {
   const { boardId } = useParams<{ boardId: string }>();
 
   const user = userServices.getStoredUser();
+
+  /** Ref to the Konva Stage — used to capture a thumbnail on exit */
+  const stageRef = useRef<Konva.Stage>(null);
 
   const [activeTool, setActiveTool] = useState<Tool>("select");
   const [activeColor, setActiveColor] = useState("#000000");
@@ -70,6 +74,17 @@ const Canvas = () => {
   }, [boardId]);
 
   // Merge active board members with workspace member details (roles, avatars)
+  const userRole = useMemo(() => {
+    if (!user || !workspaceMembers.length) return "viewer";
+    const member = workspaceMembers.find((wm) => {
+      const userId = typeof wm.user === "string" ? wm.user : wm.user._id;
+      return userId === user._id;
+    });
+    return member?.role || "viewer";
+  }, [user?._id, workspaceMembers]);
+
+  const canEdit = userRole !== "viewer";
+
   const enrichedMembers = members.map((member) => {
     const workspaceMember = workspaceMembers.find((wm) => {
       const userId = typeof wm.user === "string" ? wm.user : wm.user._id;
@@ -85,12 +100,39 @@ const Canvas = () => {
     };
   });
 
-  // Cleanup when leaving canvas
+  // Capture thumbnail and clean up when leaving the canvas
   useEffect(() => {
     return () => {
-      if (boardId) {
-        socket.emit("leave-board", { boardId });
+      if (!boardId) return;
+
+      // --- snapshot the stage as a JPEG thumbnail ---
+      if (stageRef.current) {
+        try {
+          const dataURL = stageRef.current.toDataURL({
+            pixelRatio: 0.5,       // half-res is plenty for a thumbnail
+            mimeType: "image/jpeg",
+            quality: 0.8,
+          });
+
+          // dataURL → File
+          const arr = dataURL.split(",");
+          const mimeMatch = arr[0].match(/:(.*?);/);
+          const mime = mimeMatch ? mimeMatch[1] : "image/jpeg";
+          const bstr = atob(arr[1]);
+          const u8arr = new Uint8Array(bstr.length);
+          for (let i = 0; i < bstr.length; i++) u8arr[i] = bstr.charCodeAt(i);
+          const file = new File([u8arr], `thumb-${boardId}.jpg`, { type: mime });
+
+          // fire-and-forget — do NOT await (we are in a cleanup fn)
+          boardService
+            .updateThumbnail(boardId, { thumbnail: file })
+            .catch((err) => console.error("Thumbnail upload failed:", err));
+        } catch (err) {
+          console.error("Failed to capture stage screenshot:", err);
+        }
       }
+
+      socket.emit("leave-board", { boardId });
     };
   }, [boardId]);
 
@@ -173,6 +215,7 @@ const Canvas = () => {
 
   const updateShape = useCallback(
     (id: string, attrs: Partial<ShapeElement>) => {
+      if (!canEdit) return;
       _updateShape(id, attrs);
       setShapes((prev) => {
         const next = prev.map((s) =>
@@ -182,11 +225,12 @@ const Canvas = () => {
         return prev;
       });
     },
-    [_updateShape, syncShapes],
+    [_updateShape, syncShapes, canEdit],
   );
 
   const deleteShape = useCallback(
     (id: string) => {
+      if (!canEdit) return;
       _deleteShape(id);
       setShapes((prev) => {
         const next = prev.filter((s) => s.id !== id);
@@ -194,11 +238,12 @@ const Canvas = () => {
         return prev;
       });
     },
-    [_deleteShape, syncShapes],
+    [_deleteShape, syncShapes, canEdit],
   );
 
   const bringToFront = useCallback(
     (id: string) => {
+      if (!canEdit) return;
       _bringToFront(id);
       setShapes((prev) => {
         const selected = prev.find((s) => s.id === id);
@@ -207,11 +252,12 @@ const Canvas = () => {
         return prev;
       });
     },
-    [_bringToFront, syncShapes],
+    [_bringToFront, syncShapes, canEdit],
   );
 
   const sendToBack = useCallback(
     (id: string) => {
+      if (!canEdit) return;
       _sendToBack(id);
       setShapes((prev) => {
         const selected = prev.find((s) => s.id === id);
@@ -220,7 +266,7 @@ const Canvas = () => {
         return prev;
       });
     },
-    [_sendToBack, syncShapes],
+    [_sendToBack, syncShapes, canEdit],
   );
 
   const {
@@ -242,6 +288,7 @@ const Canvas = () => {
     setSelectedId,
     getPointerPosition,
     saveToHistory,
+    canEdit,
   });
 
   const handleMouseUp = useCallback(() => {
@@ -261,6 +308,7 @@ const Canvas = () => {
     onDelete: deleteShape,
     onUndo: undo,
     onRedo: redo,
+    canEdit,
   });
 
   const handleSelect = (_e: CanvasPointerEvent, id: string) => {
@@ -272,6 +320,7 @@ const Canvas = () => {
   };
 
   const handleTextEdit = (id: string, text: string) => {
+    if (!canEdit) return;
     startEditing(id, text);
   };
 
@@ -283,12 +332,13 @@ const Canvas = () => {
 
   return (
     <div className="h-screen w-screen overflow-hidden bg-gray-100 flex flex-col">
-      <CanvasNavbar boardName={boardName} members={enrichedMembers} />
+      <CanvasNavbar boardName={boardName} members={enrichedMembers} canEdit={canEdit} />
 
       <div className="relative flex-1 overflow-hidden">
         <Toolbar
           activeTool={activeTool}
           activeColor={activeColor}
+          canEdit={canEdit}
           onToolChange={setActiveTool}
           onColorChange={setActiveColor}
         />
@@ -296,6 +346,7 @@ const Canvas = () => {
         {selectedShape && activeTool === "select" && (
           <PropertiesPanel
             shape={selectedShape}
+            canEdit={canEdit}
             updateShape={updateShape}
             bringToFront={bringToFront}
             sendToBack={sendToBack}
@@ -310,16 +361,19 @@ const Canvas = () => {
               shape={selectedShape}
               camera={camera}
               value={editingValue}
+              canEdit={canEdit}
               onChange={setEditingValue}
               onFinish={finishEditingText}
             />
           )}
 
         <CanvasStage
+          stageRef={stageRef}
           viewport={viewport}
           camera={camera}
           activeTool={activeTool}
           selectedId={selectedId}
+          canEdit={canEdit}
           shapes={shapes}
           onWheel={handleWheel}
           onMouseDown={handleMouseDown}

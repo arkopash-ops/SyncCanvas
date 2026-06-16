@@ -11,6 +11,7 @@ interface StickyShapeProps extends BaseShapeProps<StickyElement> {
 const StickyShape = ({
   shape,
   isSelectable,
+  canEdit,
   onSelect,
   onDragEnd,
   updateShape,
@@ -27,19 +28,20 @@ const StickyShape = ({
       height={shape.height}
 
       rotation={shape.rotation}
-      draggable={isSelectable}
+      draggable={isSelectable && canEdit}
 
       onClick={(e) => onSelect(e, shape.id)}
 
       onTap={(e) => onSelect(e, shape.id)}
 
-      onDblClick={() => onTextEdit(shape.id, shape.text)}
+      onDblClick={() => canEdit && onTextEdit(shape.id, shape.text)}
 
-      onDblTap={() => onTextEdit(shape.id, shape.text)}
+      onDblTap={() => canEdit && onTextEdit(shape.id, shape.text)}
 
       onDragEnd={(e) => onDragEnd(e, shape.id)}
 
       onTransformEnd={(e) => {
+        if (!canEdit) return;
         const node = e.target as Konva.Group;
         const scaleX = node.scaleX();
         const scaleY = node.scaleY();

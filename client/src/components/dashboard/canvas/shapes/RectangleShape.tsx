@@ -7,6 +7,7 @@ import type { RectangleElement } from "../../../../types/board.types";
 const RectangleShape = ({
   shape,
   isSelectable,
+  canEdit,
   onSelect,
   onDragEnd,
   updateShape,
@@ -26,7 +27,7 @@ const RectangleShape = ({
       fill={shape.fill}
       strokeWidth={2}
 
-      draggable={isSelectable}
+      draggable={isSelectable && canEdit}
 
       onClick={(e) => onSelect(e, shape.id)}
 
@@ -35,6 +36,7 @@ const RectangleShape = ({
       onDragEnd={(e) => onDragEnd(e, shape.id)}
 
       onTransformEnd={(e) => {
+        if (!canEdit) return;
         const node = e.target as Konva.Rect;
 
         const scaleX = node.scaleX();

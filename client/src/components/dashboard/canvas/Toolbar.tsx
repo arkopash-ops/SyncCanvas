@@ -22,6 +22,7 @@ export type MenuType = "shapes" | "draw" | null;
 interface ToolbarProps {
   activeTool: Tool;
   activeColor: string;
+  canEdit: boolean;
   onToolChange: (tool: Tool) => void;
   onColorChange: (color: string) => void;
 }
@@ -52,6 +53,7 @@ const drawTools = [
 const Toolbar = ({
   activeTool,
   activeColor,
+  canEdit,
   onToolChange,
   onColorChange,
 }: ToolbarProps) => {
@@ -112,7 +114,12 @@ const Toolbar = ({
             <button
               key={tool.id}
               title={tool.label}
+              disabled={!canEdit && tool.id !== "select"}
               onClick={() => {
+                if (!canEdit || tool.id === "select") {
+                  if (tool.id !== "select") return;
+                }
+
                 if (tool.id === "shapes") {
                   setOpenMenu(openMenu === "shapes" ? null : "shapes");
                   return;
@@ -128,7 +135,7 @@ const Toolbar = ({
               }}
               className={`flex h-10 w-10 items-center justify-center rounded-lg transition ${
                 isActive ? "bg-black text-white" : "hover:bg-gray-100"
-              }`}
+              } ${!canEdit && tool.id !== "select" ? "opacity-50 cursor-not-allowed" : ""}`}
             >
               <Icon size={18} />
 
@@ -149,7 +156,9 @@ const Toolbar = ({
             return (
               <button
                 key={tool.id}
+                disabled={!canEdit}
                 onClick={() => {
+                  if (!canEdit) return;
                   onToolChange(tool.id);
                   setOpenMenu(null);
                 }}
@@ -157,7 +166,7 @@ const Toolbar = ({
                   activeTool === tool.id
                     ? "bg-black text-white"
                     : "hover:bg-gray-100"
-                }`}
+                } ${!canEdit ? "opacity-50 cursor-not-allowed" : ""}`}
               >
                 <Icon size={18} />
               </button>
@@ -167,7 +176,7 @@ const Toolbar = ({
       )}
 
       {/* Color Palette */}
-      {activeTool !== "select" && (
+      {activeTool !== "select" && canEdit && (
         <div className="absolute bottom-6 left-1/2 z-50 flex -translate-x-1/2 gap-2 rounded-xl border border-gray-200 bg-white p-2 shadow-lg">
           {COLORS.map((color) => (
             <button

@@ -6,7 +6,7 @@ import cloudinary from "../../config/cloudinary";
 import { uploadBoardThumbnailToCloudinary } from "../../utils/cloudinary";
 
 
-// create board (only owner)
+// create board (only owner & editor)
 export const createBoard = async ({
     workspaceId,
     userId,
@@ -26,7 +26,7 @@ export const createBoard = async ({
         throw err;
     }
 
-    if (member.role !== "owner") {
+    if (member.role === "viewer") {
         const err = new Error("Only Workspace owner can create Board.");
         (err as any).statusCode = 403;
         throw err;
@@ -48,7 +48,7 @@ export const starredBoard = async (userId: string) => {
         starredBy: userId,
         isActive: true,
     })
-        .select("_id title thumbnail workspaceId updatedAt")
+        .select("_id title thumbnail workspaceId updatedAt isActive starredBy")
         .populate("workspaceId", "name image")
         .sort({ updatedAt: -1 });
 
@@ -272,4 +272,34 @@ export const duplicateBoard = async (
     });
 
     return duplicated;
+};
+
+
+// last modified boards (workspace-specific, sorted by updatedAt desc)
+export const lastModifiedBoard = async (
+    workspaceId: string,
+    userId: string,
+    limit: number = 3
+) => {
+    const workspace = await WorkspaceModel.findById(workspaceId);
+    if (!workspace || !workspace.isActive) {
+        const err = new Error("Workspace not found.");
+        (err as any).statusCode = 404;
+        throw err;
+    }
+
+    const member = workspace.members.find((m) => m.userId.toString() === userId);
+    if (!member) {
+        const err = new Error("You are not a member of this workspace.");
+        (err as any).statusCode = 403;
+        throw err;
+    }
+
+    const boards = await BoardModel.find({ workspaceId, isActive: true })
+        .select("_id title thumbnail isActive starredBy lastEditedBy createdAt updatedAt ownerId")
+        .populate("lastEditedBy", "name")
+        .sort({ updatedAt: -1 })
+        .limit(limit);
+
+    return boards;
 };

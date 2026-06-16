@@ -11,6 +11,7 @@ import TriangleShape from "./shapes/TriangleShape";
 const ShapeRenderer = ({
   shapes,
   activeTool,
+  canEdit,
   onSelect,
   onDragEnd,
   updateShape,
@@ -26,6 +27,7 @@ const ShapeRenderer = ({
                 key={shape.id}
                 shape={shape}
                 isSelectable={activeTool === "select"}
+                canEdit={canEdit}
                 onSelect={onSelect}
                 onDragEnd={onDragEnd}
                 updateShape={updateShape}
@@ -38,6 +40,7 @@ const ShapeRenderer = ({
                 key={shape.id}
                 shape={shape}
                 isSelectable={activeTool === "select"}
+                canEdit={canEdit}
                 onSelect={onSelect}
                 onDragEnd={onDragEnd}
                 updateShape={updateShape}
@@ -50,6 +53,7 @@ const ShapeRenderer = ({
                 key={shape.id}
                 shape={shape}
                 isSelectable={activeTool === "select"}
+                canEdit={canEdit}
                 onSelect={onSelect}
                 onDragEnd={onDragEnd}
                 updateShape={updateShape}
@@ -62,6 +66,7 @@ const ShapeRenderer = ({
                 key={shape.id}
                 shape={shape}
                 isSelectable={activeTool === "select"}
+                canEdit={canEdit}
                 onSelect={onSelect}
                 onDragEnd={onDragEnd}
                 updateShape={updateShape}
@@ -74,6 +79,7 @@ const ShapeRenderer = ({
                 key={shape.id}
                 shape={shape}
                 isSelectable={activeTool === "select"}
+                canEdit={canEdit}
                 onSelect={onSelect}
                 onDragEnd={onDragEnd}
                 updateShape={updateShape}
@@ -86,6 +92,7 @@ const ShapeRenderer = ({
                 key={shape.id}
                 shape={shape}
                 isSelectable={activeTool === "select"}
+                canEdit={canEdit}
                 onSelect={onSelect}
                 onDragEnd={onDragEnd}
                 updateShape={updateShape}
@@ -99,6 +106,7 @@ const ShapeRenderer = ({
                 key={shape.id}
                 shape={shape}
                 isSelectable={activeTool === "select"}
+                canEdit={canEdit}
                 onSelect={onSelect}
                 onDragEnd={onDragEnd}
                 updateShape={updateShape}

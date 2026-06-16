@@ -5,6 +5,7 @@ import type { Tool } from "../components/dashboard/canvas/Toolbar";
 export interface BaseShapeProps<T extends ShapeElement> {
     shape: T;
     isSelectable: boolean;
+    canEdit: boolean;
 
     onSelect: (
         e: KonvaEventObject<MouseEvent | TouchEvent>,
@@ -26,6 +27,7 @@ export interface BaseShapeProps<T extends ShapeElement> {
 export interface ShapeRendererProps {
     shapes: ShapeElement[];
     activeTool: Tool;
+    canEdit: boolean;
 
     onSelect: (
         e: KonvaEventObject<MouseEvent | TouchEvent>,
